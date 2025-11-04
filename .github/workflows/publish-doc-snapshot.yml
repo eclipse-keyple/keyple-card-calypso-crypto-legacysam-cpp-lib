@@ -1,0 +1,14 @@
+name: Publish API documentation (snapshot)
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  checks: write
+
+jobs:
+  publish-doc-snapshot:
+    uses: eclipse-keyple/keyple-actions/.github/workflows/reusable-publish-doxygen.yml@main # NOSONAR - Same organization, trusted source
+    secrets: inherit

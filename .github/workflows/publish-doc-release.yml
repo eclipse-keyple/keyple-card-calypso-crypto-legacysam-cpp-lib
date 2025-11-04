@@ -1,0 +1,14 @@
+name: Publish API documentation (release)
+on:
+  release:
+    types: [published]
+
+permissions:
+  checks: write
+
+jobs:
+  publish-doc-release:
+    uses: eclipse-keyple/keyple-actions/.github/workflows/reusable-publish-doxygen.yml@main # NOSONAR - Same organization, trusted source
+    with:
+      version: ${{ github.event.inputs.version || github.ref_name }}
+    secrets: inherit
