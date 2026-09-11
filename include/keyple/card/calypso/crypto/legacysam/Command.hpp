@@ -259,14 +259,16 @@ public:
     getStatusTable() const;
 
     /**
-     * Builds a specific APDU command exception.
+     * Throws the specific APDU command exception matching the given class.
+     *
+     * Throws instead of returning: returning by value would slice the
+     * exception down to CommandException.
      *
      * @param exceptionClass the exception class.
      * @param message The message.
-     * @return A not null reference.
      * @since 0.1.0
      */
-    CommandException buildCommandException(
+    [[noreturn]] void throwCommandException(
         const std::type_info& exceptionClass, const std::string& message);
 
 protected:
