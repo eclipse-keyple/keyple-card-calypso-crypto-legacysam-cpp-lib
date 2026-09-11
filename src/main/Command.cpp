@@ -272,7 +272,7 @@ Command::checkStatus()
         = props != nullptr ? props->getInformation() : "Unknown status";
 
     /* Throw the exception */
-    buildCommandException(exceptionClass, message);
+    throwCommandException(exceptionClass, message);
 }
 
 std::shared_ptr<ApduResponseApi>
@@ -288,7 +288,11 @@ Command::getStatusTable() const
 }
 
 void
+<<<<<<< HEAD
 Command::buildCommandException(
+=======
+Command::throwCommandException(
+>>>>>>> 722d1eb (fix: throw command exceptions instead of returning them by value)
     const std::type_info& exceptionClass, const std::string& message)
 {
     if (exceptionClass == typeid(AccessForbiddenException)) {

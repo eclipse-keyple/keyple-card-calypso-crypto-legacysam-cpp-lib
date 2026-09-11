@@ -261,7 +261,7 @@ public:
      * @param message The message.
      * @since 0.1.0
      */
-    [[noreturn]] void buildCommandException(
+    [[noreturn]] void throwCommandException(
         const std::type_info& exceptionClass, const std::string& message);
 
 protected:
