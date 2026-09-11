@@ -273,7 +273,7 @@ Command::checkStatus()
         = props != nullptr ? props->getInformation() : "Unknown status";
 
     /* Throw the exception */
-    throw buildCommandException(exceptionClass, message);
+    throwCommandException(exceptionClass, message);
 }
 
 std::shared_ptr<ApduResponseApi>
@@ -288,26 +288,26 @@ Command::getStatusTable() const
     return STATUS_TABLE;
 }
 
-CommandException
-Command::buildCommandException(
+void
+Command::throwCommandException(
     const std::type_info& exceptionClass, const std::string& message)
 {
     if (exceptionClass == typeid(AccessForbiddenException)) {
-        return AccessForbiddenException(message);
+        throw AccessForbiddenException(message);
     } else if (exceptionClass == typeid(CounterOverflowException)) {
-        return CounterOverflowException(message);
+        throw CounterOverflowException(message);
     } else if (exceptionClass == typeid(DataAccessException)) {
-        return DataAccessException(message);
+        throw DataAccessException(message);
     } else if (exceptionClass == typeid(IllegalParameterException)) {
-        return IllegalParameterException(message);
+        throw IllegalParameterException(message);
     } else if (exceptionClass == typeid(IncorrectInputDataException)) {
-        return IncorrectInputDataException(message);
+        throw IncorrectInputDataException(message);
     } else if (exceptionClass == typeid(SecurityDataException)) {
-        return SecurityDataException(message);
+        throw SecurityDataException(message);
     } else if (exceptionClass == typeid(SecurityContextException)) {
-        return SecurityContextException(message);
+        throw SecurityContextException(message);
     } else {
-        return UnknownStatusException(message);
+        throw UnknownStatusException(message);
     }
 }
 
