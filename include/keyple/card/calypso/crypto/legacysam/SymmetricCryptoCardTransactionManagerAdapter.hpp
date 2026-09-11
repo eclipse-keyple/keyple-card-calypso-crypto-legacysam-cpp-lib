@@ -236,7 +236,7 @@ private:
         /**
          *
          */
-        bool mIsDigestInitDone;
+        bool mIsDigestInitDone = false;
 
         /**
          *
@@ -377,12 +377,12 @@ private:
     /**
      *
      */
-    bool mIsEncryptionActive;
+    bool mIsEncryptionActive = false;
 
     /**
      *
      */
-    bool mIsSelectDiversifierNeededOnDigestInit;
+    bool mIsSelectDiversifierNeededOnDigestInit = false;
 
     /**
      * Gets the command context.
