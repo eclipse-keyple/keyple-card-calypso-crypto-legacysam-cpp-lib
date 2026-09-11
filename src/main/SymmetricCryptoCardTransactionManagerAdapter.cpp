@@ -705,8 +705,17 @@ SymmetricCryptoCardTransactionManagerAdapter::cipherPin(
 
     prepareGiveRandom(cardChallenge);
 
-    auto cmd = std::make_shared<CommandCardCipherPin>(
-        getContext(), pinCipheringKif, pinCipheringKvc, currentPin, newPin);
+    /* An empty new PIN means a verification, which has its own constructor
+     * setting P1 to 80h; the modification one sets 40h and rejects it. */
+    std::shared_ptr<CommandCardCipherPin> cmd;
+    if (newPin.empty()) {
+        cmd = std::make_shared<CommandCardCipherPin>(
+            getContext(), pinCipheringKif, pinCipheringKvc, currentPin);
+
+    } else {
+        cmd = std::make_shared<CommandCardCipherPin>(
+            getContext(), pinCipheringKif, pinCipheringKvc, currentPin, newPin);
+    }
     mSamCommands.push_back(cmd);
 
     processCommands();
