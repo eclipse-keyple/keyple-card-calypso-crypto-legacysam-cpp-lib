@@ -288,11 +288,7 @@ Command::getStatusTable() const
 }
 
 void
-<<<<<<< HEAD
-Command::buildCommandException(
-=======
 Command::throwCommandException(
->>>>>>> 722d1eb (fix: throw command exceptions instead of returning them by value)
     const std::type_info& exceptionClass, const std::string& message)
 {
     if (exceptionClass == typeid(AccessForbiddenException)) {
