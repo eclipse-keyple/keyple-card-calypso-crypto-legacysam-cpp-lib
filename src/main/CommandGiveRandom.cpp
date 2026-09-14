@@ -46,7 +46,8 @@ const std::map<int, const std::shared_ptr<StatusProperties>>
 CommandGiveRandom::CommandGiveRandom(
     std::shared_ptr<DtoAdapters::CommandContextDto> context,
     const std::vector<uint8_t>& random)
-: Command(CommandRef::GIVE_RANDOM, random.size(), context)
+/* The SAM answers with a status word only, hence no expected data length. */
+: Command(CommandRef::GIVE_RANDOM, 0, context)
 {
     const uint8_t cla = context->getTargetSam()->getClassByte();
     const uint8_t p1 = 0x00;
