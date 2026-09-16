@@ -1,0 +1,23 @@
+/**
+ * @mainpage Keyple Card Calypso Crypto Legacy SAM C++ Library
+ *
+ * @section overview Overview
+ *
+ * The **Keyple Card Calypso Crypto Legacy SAM C++ Library** is a Keyple add-on
+ * that provides support for Calypso cryptographic operations using legacy SAM
+ * (Secure Application Module) cards.
+ *
+ * @section key_features Key Features
+ *
+ * - Legacy SAM card support
+ * - Calypso cryptographic operations
+ * - Secure session key management
+ * - Authentication and signature operations
+ * - Integration with Calypso card library
+ *
+ * @section resources Resources
+ *
+ * - **Documentation**: [keyple.org](https://keyple.org)
+ * - **API Documentation**: [docs.keyple.org/keyple-card-calypso-crypto-legacysam-cpp-lib](https://docs.keyple.org/keyple-card-calypso-crypto-legacysam-cpp-lib)
+ * - **Examples**: [github.com/eclipse/keyple-cpp-example](https://github.com/eclipse/keyple-cpp-example)
+ */
