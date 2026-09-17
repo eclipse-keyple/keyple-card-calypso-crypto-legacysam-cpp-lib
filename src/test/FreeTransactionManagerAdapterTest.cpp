@@ -187,9 +187,13 @@ const std::string R_READ_SYSTEM_KEY_PARAMETER_AUTHENTICATION
     = CIPHER_MESSAGE_SIGNATURE + "FAF4404142430445464748494AC4"
       + SAM_SERIAL_NUMBER + "FAFF408000009000";
 
-MATCHER_P(CardRequestMatches, expected, "")  // cppcheck-suppress syntaxError
-
+// cppcheck-suppress syntaxError
+// MATCHER_P expands into a templated gmock matcher class that cppcheck's
+// parser cannot handle; the macro compiles fine under a real compiler.
+MATCHER_P(CardRequestMatches, expected, "")
 {
+    (void)result_listener;
+
     const auto& leftApduRequests = expected->getApduRequests();
     const auto& rightApduRequests = arg->getApduRequests();
 
