@@ -21,6 +21,7 @@
 #include "keyple/card/calypso/crypto/legacysam/LegacySamAdapter.hpp"
 #include "keypop/calypso/crypto/legacysam/transaction/AsyncTransactionExecutorManager.hpp"
 #include "keypop/card/ProxyReaderApi.hpp"
+#include "keypop/reader/ChannelControl.hpp"
 
 namespace keyple {
 namespace card {
@@ -31,6 +32,7 @@ namespace legacysam {
 using keypop::calypso::crypto::legacysam::transaction::
     AsyncTransactionExecutorManager;
 using keypop::card::ProxyReaderApi;
+using keypop::reader::ChannelControl;
 
 /**
  * Adapter of AsyncTransactionExecutorManager.
@@ -61,8 +63,17 @@ public:
      * {@inheritDoc}
      *
      * @since 0.3.0
+     * @deprecated Use processCommands(ChannelControl) instead.
      */
     AsyncTransactionExecutorManager& processCommands() override;
+
+    /**
+     * {@inheritDoc}
+     *
+     * @since 1.0.0
+     */
+    AsyncTransactionExecutorManager&
+    processCommands(ChannelControl channelControl) override;
 };
 
 } /* namespace legacysam */

@@ -64,7 +64,8 @@ CommandUnlock::CommandUnlock(
 
     if (unlockData.size() != 8 && unlockData.size() != 16) {
         throw IllegalArgumentException(
-            "Unlock data should be 8 ou 16 bytes long!");
+            "Unlock data is an incorrect length. Expected 8 or 16 bytes, got "
+            + std::to_string(unlockData.size()));
     }
 
     setApduRequest(

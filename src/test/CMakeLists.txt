@@ -21,6 +21,8 @@ ADD_EXECUTABLE(
 
     ${CMAKE_CURRENT_SOURCE_DIR}/MainTest.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/LegacySamUtilTest.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/AsyncTransactionCreatorManagerAdapterTest.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/FreeTransactionManagerAdapterTest.cpp
 )
 
 # Add necessary deps

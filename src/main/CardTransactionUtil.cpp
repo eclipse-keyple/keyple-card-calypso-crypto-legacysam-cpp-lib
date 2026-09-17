@@ -18,14 +18,13 @@
 #include <utility>
 #include <vector>
 
-#include "keyple/core/plugin/ReaderIOException.hpp"
-#include "keyple/core/util/cpp/exception/Exception.hpp"
-#include "keypop/calypso/crypto/legacysam/transaction/SamIOException.hpp"
 #include "keypop/calypso/crypto/symmetric/SymmetricCryptoIOException.hpp"
 #include "keypop/card/CardBrokenCommunicationException.hpp"
 #include "keypop/card/ChannelControl.hpp"
 #include "keypop/card/ReaderBrokenCommunicationException.hpp"
 #include "keypop/card/UnexpectedStatusWordException.hpp"
+#include "keypop/reader/CardCommunicationException.hpp"
+#include "keypop/reader/ReaderCommunicationException.hpp"
 
 namespace keyple {
 namespace card {
@@ -33,23 +32,21 @@ namespace calypso {
 namespace crypto {
 namespace legacysam {
 
-using keyple::core::plugin::ReaderIOException;
-using keyple::core::util::cpp::exception::Exception;
-using keypop::calypso::crypto::legacysam::transaction::SamIOException;
 using keypop::calypso::crypto::symmetric::SymmetricCryptoIOException;
 using keypop::card::CardBrokenCommunicationException;
-using keypop::card::ChannelControl;
 using keypop::card::ReaderBrokenCommunicationException;
 using keypop::card::UnexpectedStatusWordException;
+using keypop::reader::CardCommunicationException;
+using keypop::reader::ReaderCommunicationException;
 
 const std::string CardTransactionUtil::MSG_SAM_READER_COMMUNICATION_ERROR
-    = "A communication error with the SAM reader occurred ";
+    = "Failed to communicate with SAM reader";
 const std::string CardTransactionUtil::MSG_SAM_COMMUNICATION_ERROR
-    = "A communication error with the SAM occurred ";
+    = "Failed to communicate with SAM";
 const std::string CardTransactionUtil::MSG_WHILE_TRANSMITTING_COMMANDS
-    = "while transmitting commands";
-const std::string CardTransactionUtil::MSG_SAM_COMMAND_ERROR
-    = "A SAM command error occurred ";
+    = " while transmitting commands.";
+const std::string CardTransactionUtil::MSG_FAILED_TO_PROCESS_SAM_RESPONSE
+    = "Failed to process SAM response.";
 
 std::vector<std::shared_ptr<ApduRequestSpi>>
 CardTransactionUtil::getApduRequests(
@@ -73,7 +70,7 @@ CardTransactionUtil::transmitCardRequest(
     std::shared_ptr<CardResponseApi> cardResponse;
     try {
         cardResponse = samReader->transmitCardRequest(
-            cardRequest, ChannelControl::KEEP_OPEN);
+            cardRequest, keypop::card::ChannelControl::KEEP_OPEN);
 
     } catch (const ReaderBrokenCommunicationException& e) {
         saveTransactionAuditData(
@@ -81,23 +78,23 @@ CardTransactionUtil::transmitCardRequest(
         throw SymmetricCryptoIOException(
             MSG_SAM_READER_COMMUNICATION_ERROR
                 + MSG_WHILE_TRANSMITTING_COMMANDS,
-            ReaderIOException(
+            ReaderCommunicationException(
                 MSG_SAM_READER_COMMUNICATION_ERROR
                     + MSG_WHILE_TRANSMITTING_COMMANDS
                     + getTransactionAuditDataAsString(
                         transactionAuditData, sam),
-                Exception(e.getMessage())));
+                e));
 
     } catch (const CardBrokenCommunicationException& e) {
         saveTransactionAuditData(
             cardRequest, e.getCardResponse(), transactionAuditData);
         throw SymmetricCryptoIOException(
             MSG_SAM_COMMUNICATION_ERROR + MSG_WHILE_TRANSMITTING_COMMANDS,
-            SamIOException(
+            CardCommunicationException(
                 MSG_SAM_COMMUNICATION_ERROR + MSG_WHILE_TRANSMITTING_COMMANDS
                     + getTransactionAuditDataAsString(
                         transactionAuditData, sam),
-                Exception(e.what())));
+                e));
 
     } catch (const UnexpectedStatusWordException& e) {
         cardResponse = e.getCardResponse();

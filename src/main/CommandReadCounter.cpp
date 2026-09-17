@@ -15,10 +15,12 @@
 
 #include <map>
 #include <memory>
+#include <vector>
 
 #include "keyple/card/calypso/crypto/legacysam/CounterOverflowException.hpp"
 #include "keyple/card/calypso/crypto/legacysam/IllegalParameterException.hpp"
 #include "keyple/core/util/ApduUtil.hpp"
+#include "keyple/core/util/ByteArrayUtil.hpp"
 
 namespace keyple {
 namespace card {
@@ -27,6 +29,7 @@ namespace crypto {
 namespace legacysam {
 
 using keyple::core::util::ApduUtil;
+using keyple::core::util::ByteArrayUtil;
 
 const int CommandReadCounter::SW_DATA_NOT_SIGNED_WARNING = 0x6200;
 
@@ -86,7 +89,14 @@ void
 CommandReadCounter::parseResponse(std::shared_ptr<ApduResponseApi> apduResponse)
 {
     setResponseAndCheckStatus(apduResponse);
-    getContext()->getTargetSam()->setChallenge(apduResponse->getDataOut());
+
+    const std::vector<uint8_t>& dataOut = apduResponse->getDataOut();
+    for (int i = 0; i < 9; i++) {
+        getContext()->getTargetSam()->putCounterValue(
+            (mCounterFileRecordNumber * 9) + i,
+            static_cast<int>(
+                ByteArrayUtil::extractInt(dataOut, 8 + (3 * i), 3, false)));
+    }
 }
 
 const std::map<int, const std::shared_ptr<StatusProperties>>&

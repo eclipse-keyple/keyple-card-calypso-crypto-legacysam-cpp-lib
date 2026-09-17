@@ -76,7 +76,7 @@ LegacySamResourceProfileExtensionAdapter::matches(
             = samCardSelectionManager->processCardSelectionScenario(reader);
 
     } catch (const Exception& e) {
-        mLogger->error("SAM selection failed: %\n", e.getMessage());
+        mLogger->error("SAM selection failed [error=%]\n", e.getMessage());
     }
 
     return samCardSelectionResult ? samCardSelectionResult->getActiveSmartCard()

@@ -140,8 +140,17 @@ AsyncTransactionCreatorManager&
 AsyncTransactionCreatorManagerAdapter::processCommands()
 {
     throw UnsupportedOperationException(
-        std::string("processCommands() is not allowed during the creation of")
-        + "an asynchronous transaction");
+        "'processCommands' is not allowed during the creation of an "
+        "asynchronous transaction");
+}
+
+AsyncTransactionCreatorManager&
+AsyncTransactionCreatorManagerAdapter::processCommands(
+    ChannelControl /*channelControl*/)
+{
+    throw UnsupportedOperationException(
+        "'processCommands' is not allowed during the creation of an "
+        "asynchronous transaction");
 }
 
 } /* namespace legacysam */

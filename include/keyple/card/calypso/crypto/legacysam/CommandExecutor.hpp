@@ -22,6 +22,7 @@
 #include "keypop/card/CardResponseApi.hpp"
 #include "keypop/card/ChannelControl.hpp"
 #include "keypop/card/ProxyReaderApi.hpp"
+#include "keypop/reader/ChannelControl.hpp"
 
 namespace keyple {
 namespace card {
@@ -30,8 +31,8 @@ namespace crypto {
 namespace legacysam {
 
 using keypop::card::CardResponseApi;
-using keypop::card::ChannelControl;
 using keypop::card::ProxyReaderApi;
+using keypop::reader::ChannelControl;
 
 /**
  * Utility class to factorize command management.
@@ -42,31 +43,29 @@ class KEYPLECARDCALYPSOCRYPTOLEGACYSAM_API CommandExecutor {
 public:
     /**
      * Requests the execution of all commands provided by the SAM inserted in
-     * the supplied card reader, and finalizes any commands that require it.
+     * the supplied card reader and finalizes any commands that require it.
      *
      * @param commands A non-null list of Command.
-     * @param closePhysicalChannel True if the physical channel must be closed
-     * after the operation.
+     * @param channelControl The channel control.
      * @since 0.3.0
      */
     static void processCommands(
         const std::vector<std::shared_ptr<Command>>& commands,
         std::shared_ptr<ProxyReaderApi> samReader,
-        bool closePhysicalChannel);
+        ChannelControl channelControl);
 
     /**
      * Requests the execution of all commands provided by the SAM inserted in
      * the supplied card reader without finalizing it.
      *
      * @param commands A non-null list of Command.
-     * @param closePhysicalChannel True if the physical channel must be closed
-     * after the operation.
+     * @param channelControl The channel control.
      * @since 0.3.0
      */
     static void processCommandsAlreadyFinalized(
         const std::vector<std::shared_ptr<Command>>& commands,
         std::shared_ptr<ProxyReaderApi> samReader,
-        bool closePhysicalChannel);
+        ChannelControl channelControl);
 
 private:
     /**
@@ -74,7 +73,6 @@ private:
      */
     static const std::string MSG_SAM_READER_COMMUNICATION_ERROR;
     static const std::string MSG_SAM_COMMUNICATION_ERROR;
-    static const std::string MSG_SAM_COMMAND_ERROR;
     static const std::string MSG_WHILE_TRANSMITTING_COMMANDS;
 
     /**
@@ -86,13 +84,12 @@ private:
      * Executes the provided commands.
      *
      * @param commands The commands.
-     * @param closePhysicalChannel True if the physical channel must be closed
-     * after the operation.
+     * @param channelControl The channel control.
      */
     static void executeCommands(
         const std::vector<std::shared_ptr<Command>>& commands,
         std::shared_ptr<ProxyReaderApi> samReader,
-        bool closePhysicalChannel);
+        ChannelControl channelControl);
 
     /**
      * Creates a list of ApduRequestSpi from a list of Command.
@@ -114,7 +111,7 @@ private:
     static std::shared_ptr<CardResponseApi> transmitCardRequest(
         std::shared_ptr<CardRequestSpi> cardRequest,
         std::shared_ptr<ProxyReaderApi> samReader,
-        ChannelControl channelControl);
+        keypop::card::ChannelControl channelControl);
 };
 
 } /* namespace legacysam */

@@ -30,9 +30,9 @@
 #include "keyple/core/util/KeypleAssert.hpp"
 #include "keyple/core/util/cpp/exception/IllegalStateException.hpp"
 #include "keypop/calypso/card/transaction/InconsistentDataException.hpp"
-#include "keypop/calypso/card/transaction/UnexpectedCommandStatusException.hpp"
 #include "keypop/card/ChannelControl.hpp"
 #include "keypop/card/ParseException.hpp"
+#include "keypop/reader/InvalidCardResponseException.hpp"
 
 namespace keyple {
 namespace card {
@@ -44,16 +44,13 @@ using keyple::core::util::Assert;
 using keyple::core::util::HexUtil;
 using keyple::core::util::cpp::exception::IllegalStateException;
 using keypop::calypso::card::transaction::InconsistentDataException;
-using keypop::calypso::card::transaction::UnexpectedCommandStatusException;
-using keypop::card::ChannelControl;
 using keypop::card::ParseException;
+using keypop::reader::InvalidCardResponseException;
 
 using CardRequestAdapter = DtoAdapters::CardRequestAdapter;
 using CardSelectionRequestAdapter = DtoAdapters::CardSelectionRequestAdapter;
 
 const int LegacySamSelectionExtensionAdapter::SW_NOT_LOCKED = 0x6985;
-const std::string LegacySamSelectionExtensionAdapter::MSG_SAM_COMMAND_ERROR
-    = "A SAM command error occurred ";
 
 const std::unique_ptr<Logger> LegacySamSelectionExtensionAdapter::mLogger
     = LoggerFactory::getLogger(typeid(LegacySamSelectionExtensionAdapter));
@@ -115,15 +112,15 @@ LegacySamSelectionExtensionAdapter::parse(
         mLegacySamAdapter->parseSelectionResponse(cardSelectionResponseApi);
         auto cardResponse = getCardResponse(cardSelectionResponseApi);
         parseCardResponse(cardResponse);
-    } catch (const std::exception& e) {
-        throw ParseException("Invalid SAM response: " + std::string(e.what()));
+    } catch (const std::exception&) {
+        throw ParseException("Invalid SAM response");
     }
     if (mLegacySamAdapter->getProductType() == ProductType::UNKNOWN
         && cardSelectionResponseApi->getSelectApplicationResponse() == nullptr
         && cardSelectionResponseApi->getPowerOnData().empty()) {
         throw ParseException(
-            "Unable to create a LegacySam: no power-on data and no FCI "
-            "provided");
+            "No power-on data and no FCI provided. Unable to create a "
+            "LegacySam instance");
     }
     return mLegacySamAdapter;
 }
@@ -138,7 +135,8 @@ LegacySamSelectionExtensionAdapter::getCardResponse(
     if (mUnlockSettingType == UnlockSettingType::STATIC_MODE_PROVIDER
         || mUnlockSettingType == UnlockSettingType::DYNAMIC_MODE_PROVIDER) {
         if (mTargetSamReader == nullptr) {
-            throw std::logic_error("targetSamReader is not set");
+            throw std::logic_error(
+                "'targetSamReader' is not set. Unable to unlock the SAM");
         }
 
         std::vector<uint8_t> unlockData;
@@ -169,7 +167,8 @@ LegacySamSelectionExtensionAdapter::getCardResponse(
 
         cardResponse
             = std::dynamic_pointer_cast<ProxyReaderApi>(mTargetSamReader)
-                  ->transmitCardRequest(cardRequest, ChannelControl::KEEP_OPEN);
+                  ->transmitCardRequest(
+                      cardRequest, keypop::card::ChannelControl::KEEP_OPEN);
     }
     return cardResponse;
 }
@@ -184,7 +183,10 @@ LegacySamSelectionExtensionAdapter::parseCardResponse(
     }
 
     if (mCommands.size() != apduResponses.size()) {
-        throw std::logic_error("Mismatch in the number of requests/responses");
+        throw std::logic_error(
+            "The number of commands/responses does not match. Expected "
+            + std::to_string(mCommands.size()) + " responses, got "
+            + std::to_string(apduResponses.size()));
     }
     if (!mCommands.empty()) {
         parseApduResponses(mCommands, apduResponses);
@@ -203,9 +205,9 @@ LegacySamSelectionExtensionAdapter::parseApduResponses(
      */
     if (apduResponses.size() > commands.size()) {
         throw InconsistentDataException(
-            "The number of commands/responses does not match: nb commands = "
-            + std::to_string(commands.size())
-            + ", nb responses = " + std::to_string(apduResponses.size()));
+            "The number of commands/responses does not match. Expected "
+            + std::to_string(commands.size()) + " responses, got "
+            + std::to_string(apduResponses.size()));
     }
 
     /*
@@ -223,10 +225,17 @@ LegacySamSelectionExtensionAdapter::parseApduResponses(
                 mLogger->warn("SAM not locked or already unlocked\n");
 
             } else {
-                throw UnexpectedCommandStatusException(
-                    MSG_SAM_COMMAND_ERROR
-                        + " while processing responses to SAM commands: "
-                        + commands[i]->getCommandRef().getName(),
+                const std::string sw = commands[i]->getApduResponse() != nullptr
+                                           ? HexUtil::toHex(
+                                                 static_cast<std::uint16_t>(
+                                                     commands[i]
+                                                         ->getApduResponse()
+                                                         ->getStatusWord()))
+                                           : "null";
+                throw InvalidCardResponseException(
+                    "Failed to process SAM response. Command: "
+                        + commands[i]->getCommandRef().getName()
+                        + ", SW: " + sw,
                     e);
             }
         }
@@ -238,9 +247,9 @@ LegacySamSelectionExtensionAdapter::parseApduResponses(
      */
     if (apduResponses.size() < commands.size()) {
         throw InconsistentDataException(
-            "The number of commands/responses does not match: nb commands = "
-            + std::to_string(commands.size())
-            + ", nb responses = " + std::to_string(apduResponses.size()));
+            "The number of commands/responses does not match. Expected "
+            + std::to_string(commands.size()) + " responses, got "
+            + std::to_string(apduResponses.size()));
     }
 }
 

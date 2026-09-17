@@ -44,6 +44,7 @@ repos:
                --error-exitcode=1,
                --language=c++,
                --std=c++11,
+               --inline-suppr,
                --suppressions-list=./.cppcheck.suppress]
         files: \.(cpp|hpp)$
 

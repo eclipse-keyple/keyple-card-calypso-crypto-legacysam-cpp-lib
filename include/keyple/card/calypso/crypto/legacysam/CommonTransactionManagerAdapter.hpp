@@ -19,12 +19,15 @@
 
 #include "keyple/card/calypso/crypto/legacysam/Command.hpp"
 #include "keyple/card/calypso/crypto/legacysam/KeypleCardCalypsoCryptoLegacySamExport.hpp"
+#include "keypop/reader/ChannelControl.hpp"
 
 namespace keyple {
 namespace card {
 namespace calypso {
 namespace crypto {
 namespace legacysam {
+
+using keypop::reader::ChannelControl;
 
 /**
  * Abstract class of all transaction manager adapters.
@@ -80,21 +83,20 @@ public:
      * needs to be finalized, especially with the help of a control SAM, then it
      * will be.
      *
-     * @param closePhysicalChannel True if the physical channel must be closed
-     * after the operation.
-     * @since 0.3.0
+     * @param channelControl The channel control.
+     * @since 1.0.0
      */
-    void processTargetSamCommands(bool closePhysicalChannel);
+    void processTargetSamCommands(ChannelControl channelControl);
 
     /**
      * Executes all previously added commands for the target SAM when they are
      * already finalized (in an asynchronous operation for example).
      *
-     * @param closePhysicalChannel True if the physical channel must be closed
-     * after the operation.
-     * @since 0.3.0
+     * @param channelControl The channel control.
+     * @since 1.0.0
      */
-    void processTargetSamCommandsAlreadyFinalized(bool closePhysicalChannel);
+    void
+    processTargetSamCommandsAlreadyFinalized(ChannelControl channelControl);
 
     /**
      * Executes all provided commands for the target SAM. If a command needs to

@@ -25,6 +25,7 @@
 #include "keypop/calypso/crypto/legacysam/transaction/FreeTransactionManager.hpp"
 #include "keypop/calypso/crypto/legacysam/transaction/SignatureComputationDataBase.hpp"
 #include "keypop/calypso/crypto/legacysam/transaction/SignatureVerificationDataBase.hpp"
+#include "keypop/reader/ChannelControl.hpp"
 
 namespace keyple {
 namespace card {
@@ -38,6 +39,7 @@ using keypop::calypso::crypto::legacysam::transaction::
     SignatureComputationDataBase;
 using keypop::calypso::crypto::legacysam::transaction::
     SignatureVerificationDataBase;
+using keypop::reader::ChannelControl;
 
 /**
  * Adapter of FreeTransactionManager.
@@ -167,8 +169,17 @@ public:
      * {@inheritDoc}
      *
      * @since 0.1.0
+     * @deprecated Use processCommands(ChannelControl) instead.
      */
     FreeTransactionManager& processCommands() override;
+
+    /**
+     * {@inheritDoc}
+     *
+     * @since 1.0.0
+     */
+    FreeTransactionManager&
+    processCommands(ChannelControl channelControl) override;
 
 private:
     /**

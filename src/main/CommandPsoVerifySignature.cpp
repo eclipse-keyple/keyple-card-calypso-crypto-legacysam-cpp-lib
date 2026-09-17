@@ -87,7 +87,7 @@ CommandPsoVerifySignature::CommandPsoVerifySignature(
     const std::uint8_t cla = context->getTargetSam()->getClassByte();
     const std::uint8_t inst = getCommandRef().getInstructionByte();
     const std::uint8_t p1 = 0x00;
-    const std::uint8_t p2 = 0xAB;
+    const std::uint8_t p2 = 0xA8;
 
     /* DataIn */
     const int messageOffset = data->isSamTraceabilityMode() ? 6 : 4;
@@ -124,7 +124,7 @@ CommandPsoVerifySignature::CommandPsoVerifySignature(
     }
     opMode <<= 4;
     /* Y: Signature size (in bytes) */
-    opMode |= signatureSize;
+    opMode |= static_cast<std::uint8_t>(signatureSize);
     dataIn[3] = opMode;
 
     /*
