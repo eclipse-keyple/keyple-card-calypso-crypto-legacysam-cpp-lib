@@ -342,7 +342,8 @@ public:
      *
      * @since 0.1.0
      */
-    class BasicSignatureComputationDataAdapter
+    class KEYPLECARDCALYPSOCRYPTOLEGACYSAM_API
+        BasicSignatureComputationDataAdapter
     : public virtual SignatureComputationDataAdapter<
           BasicSignatureComputationData>,
       public virtual BasicSignatureComputationData { };
@@ -352,7 +353,8 @@ public:
      *
      * @since 0.1.0
      */
-    class BasicSignatureVerificationDataAdapter
+    class KEYPLECARDCALYPSOCRYPTOLEGACYSAM_API
+        BasicSignatureVerificationDataAdapter
     : public virtual SignatureVerificationDataAdapter<
           BasicSignatureVerificationData>,
       public virtual BasicSignatureVerificationData { };
@@ -362,7 +364,8 @@ public:
      *
      * @since 0.1.0
      */
-    class TraceableSignatureComputationDataAdapter final
+    class KEYPLECARDCALYPSOCRYPTOLEGACYSAM_API
+        TraceableSignatureComputationDataAdapter final
     : public SignatureComputationDataAdapter<TraceableSignatureComputationData>,
       public TraceableSignatureComputationData {
     public:
@@ -461,7 +464,8 @@ public:
      *
      * @since 0.1.0
      */
-    class TraceableSignatureVerificationDataAdapter final
+    class KEYPLECARDCALYPSOCRYPTOLEGACYSAM_API
+        TraceableSignatureVerificationDataAdapter final
     : public SignatureVerificationDataAdapter<
           TraceableSignatureVerificationData>,
       public TraceableSignatureVerificationData {
@@ -551,7 +555,8 @@ public:
      *
      * @since 0.1.0
      */
-    class ApduRequestAdapter final : public ApduRequestSpi {
+    class KEYPLECARDCALYPSOCRYPTOLEGACYSAM_API ApduRequestAdapter final
+    : public ApduRequestSpi {
     public:
         /**
          * Builds an APDU request from a raw byte buffer.
@@ -654,7 +659,8 @@ public:
      *
      * @since 0.1.0
      */
-    class CardRequestAdapter final : public CardRequestSpi {
+    class KEYPLECARDCALYPSOCRYPTOLEGACYSAM_API CardRequestAdapter final
+    : public CardRequestSpi {
     public:
         /**
          * Builds a card request with a list of ApduRequestSpi and the flag
@@ -719,7 +725,8 @@ public:
      *
      * @since 0.1.0
      */
-    class CardSelectionRequestAdapter final : public CardSelectionRequestSpi {
+    class KEYPLECARDCALYPSOCRYPTOLEGACYSAM_API CardSelectionRequestAdapter final
+    : public CardSelectionRequestSpi {
     public:
         /**
          * Builds a card selection request to open a logical channel with
@@ -782,7 +789,7 @@ public:
      *
      * @since 0.3.0
      */
-    class TargetSamContextDto final {
+    class KEYPLECARDCALYPSOCRYPTOLEGACYSAM_API TargetSamContextDto final {
     public:
         /**
          * Constructs a new instance with the specified serial number and
@@ -874,7 +881,7 @@ public:
      *
      * @since 0.3.0
      */
-    class CommandContextDto final {
+    class KEYPLECARDCALYPSOCRYPTOLEGACYSAM_API CommandContextDto final {
     public:
         /**
          * Constructs a new instance with the specified target SAM, control SAM
@@ -932,7 +939,8 @@ public:
      *
      * @since 0.6.0
      */
-    class KeyPairContainerAdapter final : public KeyPairContainer {
+    class KEYPLECARDCALYPSOCRYPTOLEGACYSAM_API KeyPairContainerAdapter final
+    : public KeyPairContainer {
     public:
         /**
          * {@inheritDoc}
@@ -962,7 +970,8 @@ public:
      *
      * @since 0.6.0
      */
-    class LegacyCardCertificateComputationDataAdapter final
+    class KEYPLECARDCALYPSOCRYPTOLEGACYSAM_API
+        LegacyCardCertificateComputationDataAdapter final
     : public LegacyCardCertificateComputationData {
     public:
         /**
