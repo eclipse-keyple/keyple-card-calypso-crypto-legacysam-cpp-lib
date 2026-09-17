@@ -245,14 +245,14 @@ DtoAdapters::SignatureVerificationDataAdapter<T>::setSignatureValid(
 }
 
 // Explicit template instantiations
-template class KEYPLECARDCALYPSOCRYPTOLEGACYSAM_API
-    DtoAdapters::SignatureComputationDataAdapter<BasicSignatureComputationData>;
-template class KEYPLECARDCALYPSOCRYPTOLEGACYSAM_API DtoAdapters::
-    SignatureComputationDataAdapter<TraceableSignatureComputationData>;
-template class KEYPLECARDCALYPSOCRYPTOLEGACYSAM_API DtoAdapters::
-    SignatureVerificationDataAdapter<BasicSignatureVerificationData>;
-template class KEYPLECARDCALYPSOCRYPTOLEGACYSAM_API DtoAdapters::
-    SignatureVerificationDataAdapter<TraceableSignatureVerificationData>;
+template class DtoAdapters::SignatureComputationDataAdapter<
+    BasicSignatureComputationData>;
+template class DtoAdapters::SignatureComputationDataAdapter<
+    TraceableSignatureComputationData>;
+template class DtoAdapters::SignatureVerificationDataAdapter<
+    BasicSignatureVerificationData>;
+template class DtoAdapters::SignatureVerificationDataAdapter<
+    TraceableSignatureVerificationData>;
 
 DtoAdapters::TraceableSignatureComputationDataAdapter ::
     TraceableSignatureComputationDataAdapter()

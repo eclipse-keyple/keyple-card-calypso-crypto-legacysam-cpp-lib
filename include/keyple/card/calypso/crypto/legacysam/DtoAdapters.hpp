@@ -80,7 +80,7 @@ public:
      * @since 0.1.0
      */
     template <typename T>
-    class SignatureComputationDataAdapter
+    class KEYPLECARDCALYPSOCRYPTOLEGACYSAM_API SignatureComputationDataAdapter
     : public virtual SignatureComputationData<T> {
     public:
         /**
@@ -209,7 +209,7 @@ public:
      * @since 0.1.0
      */
     template <typename T>
-    class SignatureVerificationDataAdapter
+    class KEYPLECARDCALYPSOCRYPTOLEGACYSAM_API SignatureVerificationDataAdapter
     : public virtual SignatureVerificationData<T> {
     public:
         /**
