@@ -272,7 +272,7 @@ CommandWriteCeilings::computePlainData()
 
         if (config == CounterIncrementAccess::FREE_COUNTING_ENABLED
             && (i != 0 || mCounterFileRecordNumber != 0)) {
-            configBits |= 1 << i;
+            configBits |= static_cast<std::int16_t>(1 << i);
         }
     }
 

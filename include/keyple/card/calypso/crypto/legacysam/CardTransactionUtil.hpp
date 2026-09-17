@@ -81,7 +81,7 @@ public:
     static const std::string MSG_SAM_READER_COMMUNICATION_ERROR;
     static const std::string MSG_SAM_COMMUNICATION_ERROR;
     static const std::string MSG_WHILE_TRANSMITTING_COMMANDS;
-    static const std::string MSG_SAM_COMMAND_ERROR;
+    static const std::string MSG_FAILED_TO_PROCESS_SAM_RESPONSE;
 
 private:
     /**

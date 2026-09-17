@@ -77,8 +77,8 @@ LegacySamExtensionService::createLegacySamResourceProfileExtension(
 
     if (!legacySamSelectionExtensionAdapter) {
         throw IllegalArgumentException(
-            "The provided 'legacySamSelectionExtension' must be an instance of "
-            "'LegacySamSelectionExtensionAdapter'");
+            "Cannot cast 'legacySamSelectionExtension' to "
+            "LegacySamSelectionExtensionAdapter");
     }
     return std::make_shared<LegacySamResourceProfileExtensionAdapter>(
         legacySamSelectionExtensionAdapter, "");
@@ -96,8 +96,8 @@ LegacySamExtensionService::createLegacySamResourceProfileExtension(
             legacySamSelectionExtension);
     if (!legacySamSelectionExtensionAdapter) {
         throw IllegalArgumentException(
-            "The provided 'legacySamSelectionExtension' must be an instance of "
-            "'LegacySamSelectionExtensionAdapter'");
+            "Cannot cast 'legacySamSelectionExtension' to "
+            "LegacySamSelectionExtensionAdapter");
     }
     return std::make_shared<LegacySamResourceProfileExtensionAdapter>(
         legacySamSelectionExtensionAdapter, powerOnDataRegex);

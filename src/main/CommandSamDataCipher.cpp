@@ -101,7 +101,9 @@ CommandSamDataCipher::CommandSamDataCipher(
         p2 = 0xA0;
         break;
     default:
-        throw IllegalArgumentException("Invalid DataType: ");  // + dataType);
+        throw IllegalArgumentException(
+            "Unsupported DataType: "
+            + std::to_string(static_cast<int>(dataType)));
     }
 
     setApduRequest(

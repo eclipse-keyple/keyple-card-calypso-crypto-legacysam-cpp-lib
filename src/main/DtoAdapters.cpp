@@ -46,6 +46,7 @@ DtoAdapters::SignatureComputationDataAdapter<
 , mKvc(0)
 , mSignatureSize(8)
 , mKeyDiversifier({})
+, mHasKeyDiversifier(false)
 , mSignature({})
 {
 }
@@ -78,6 +79,7 @@ DtoAdapters::SignatureComputationDataAdapter<T>::setKeyDiversifier(
     const std::vector<uint8_t>& diversifier)
 {
     mKeyDiversifier = diversifier;
+    mHasKeyDiversifier = true;
 
     return dynamic_cast<T&>(*this);
 }
@@ -129,6 +131,13 @@ DtoAdapters::SignatureComputationDataAdapter<T>::getKeyDiversifier() const
 }
 
 template <typename T>
+bool
+DtoAdapters::SignatureComputationDataAdapter<T>::hasKeyDiversifier() const
+{
+    return mHasKeyDiversifier;
+}
+
+template <typename T>
 void
 DtoAdapters::SignatureComputationDataAdapter<T>::setSignature(
     const std::vector<uint8_t>& signature)
@@ -141,6 +150,7 @@ DtoAdapters::SignatureVerificationDataAdapter<
     T>::SignatureVerificationDataAdapter()
 : mKif(0)
 , mKvc(0)
+, mHasKeyDiversifier(false)
 , mIsSignatureValid(false)
 , mHasIsSignatureValid(false)
 {
@@ -168,6 +178,7 @@ DtoAdapters::SignatureVerificationDataAdapter<T>::setKeyDiversifier(
     const std::vector<uint8_t>& diversifier)
 {
     mKeyDiversifier = diversifier;
+    mHasKeyDiversifier = true;
 
     return dynamic_cast<T&>(*this);
 }
@@ -177,7 +188,7 @@ bool
 DtoAdapters::SignatureVerificationDataAdapter<T>::isSignatureValid() const
 {
     if (!mHasIsSignatureValid) {
-        throw std::logic_error(MSG_THE_COMMAND_HAS_NOT_YET_BEEN_PROCESSED);
+        throw IllegalStateException(MSG_THE_COMMAND_HAS_NOT_YET_BEEN_PROCESSED);
     }
     return mIsSignatureValid;
 }
@@ -215,6 +226,13 @@ const std::vector<uint8_t>
 DtoAdapters::SignatureVerificationDataAdapter<T>::getKeyDiversifier() const
 {
     return mKeyDiversifier;
+}
+
+template <typename T>
+bool
+DtoAdapters::SignatureVerificationDataAdapter<T>::hasKeyDiversifier() const
+{
+    return mHasKeyDiversifier;
 }
 
 template <typename T>

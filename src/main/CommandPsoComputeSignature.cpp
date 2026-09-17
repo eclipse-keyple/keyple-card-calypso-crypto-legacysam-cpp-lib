@@ -114,7 +114,7 @@ CommandPsoComputeSignature::CommandPsoComputeSignature(
     }
     opMode <<= 4;
     /* Y: Signature size (in bytes) */
-    opMode |= data->getSignatureSize();
+    opMode |= static_cast<std::uint8_t>(data->getSignatureSize());
     dataIn[3] = opMode;
 
     /*

@@ -20,6 +20,7 @@
 #include "keyple/card/calypso/crypto/legacysam/CommonTransactionManagerAdapter.hpp"
 #include "keyple/card/calypso/crypto/legacysam/KeypleCardCalypsoCryptoLegacySamExport.hpp"
 #include "keypop/calypso/crypto/legacysam/transaction/SecureWriteTransactionManager.hpp"
+#include "keypop/reader/ChannelControl.hpp"
 
 namespace keyple {
 namespace card {
@@ -29,6 +30,7 @@ namespace legacysam {
 
 using keypop::calypso::crypto::legacysam::transaction::
     SecureWriteTransactionManager;
+using keypop::reader::ChannelControl;
 
 /**
  * Adapter of SecureWriteTransactionManager.
@@ -167,8 +169,17 @@ public:
      * {@inheritDoc}
      *
      * @since 0.9.0
+     * @deprecated Use processCommands(ChannelControl) instead.
      */
     SecureWriteTransactionManager& processCommands() override;
+
+    /**
+     * {@inheritDoc}
+     *
+     * @since 1.0.0
+     */
+    SecureWriteTransactionManager&
+    processCommands(ChannelControl channelControl) override;
 
 private:
     SecureWriteTransactionManager& prepareTransferSystemKeyInternal(

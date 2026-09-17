@@ -37,7 +37,13 @@
 #include "keyple/core/util/HexUtil.hpp"
 #include "keyple/core/util/KeypleAssert.hpp"
 #include "keyple/core/util/cpp/exception/IllegalArgumentException.hpp"
+#include "keypop/calypso/crypto/legacysam/transaction/ReaderIOException.hpp"
+#include "keypop/calypso/crypto/legacysam/transaction/SamIOException.hpp"
 #include "keypop/calypso/crypto/legacysam/transaction/SamRevokedException.hpp"
+#include "keypop/calypso/crypto/legacysam/transaction/UnexpectedCommandStatusException.hpp"
+#include "keypop/reader/CardCommunicationException.hpp"
+#include "keypop/reader/InvalidCardResponseException.hpp"
+#include "keypop/reader/ReaderCommunicationException.hpp"
 
 namespace keyple {
 namespace card {
@@ -49,7 +55,14 @@ using keyple::core::util::Assert;
 using keyple::core::util::ByteArrayUtil;
 using keyple::core::util::HexUtil;
 using keyple::core::util::cpp::exception::IllegalArgumentException;
+using keypop::calypso::crypto::legacysam::transaction::ReaderIOException;
+using keypop::calypso::crypto::legacysam::transaction::SamIOException;
 using keypop::calypso::crypto::legacysam::transaction::SamRevokedException;
+using keypop::calypso::crypto::legacysam::transaction::
+    UnexpectedCommandStatusException;
+using keypop::reader::CardCommunicationException;
+using keypop::reader::InvalidCardResponseException;
+using keypop::reader::ReaderCommunicationException;
 
 using BasicSignatureComputationDataAdapter
     = DtoAdapters::BasicSignatureComputationDataAdapter;
@@ -88,8 +101,7 @@ FreeTransactionManagerAdapter::prepareGenerateCardAsymmetricKeyPair(
     Assert::getInstance().notNull(keyPairContainer, "keyPairContainer");
     if (!std::dynamic_pointer_cast<KeyPairContainerAdapter>(keyPairContainer)) {
         throw IllegalArgumentException(
-            "The provided keyPairContainer must be an instance of "
-            "'KeyPairContainerAdapter'");
+            "Cannot cast 'keyPairContainer' to KeyPairContainerAdapter");
     }
     addTargetSamCommand(
         std::make_shared<CommandCardGenerateAsymmetricKeyPair>(
@@ -106,8 +118,8 @@ FreeTransactionManagerAdapter::prepareComputeCardCertificate(
     if (!std::dynamic_pointer_cast<LegacyCardCertificateComputationDataAdapter>(
             data)) {
         throw IllegalArgumentException(
-            "The provided data must be an instance of "
-            "'LegacyCardCertificateComputationDataAdapter'");
+            "Cannot cast 'data' to "
+            "LegacyCardCertificateComputationDataAdapter");
     }
     addTargetSamCommand(
         std::make_shared<CommandPsoComputeCertificate>(getContext(), data));
@@ -156,7 +168,7 @@ FreeTransactionManagerAdapter::prepareComputeSignature(
             .isInRange(
                 basicDataAdapter->getSignatureSize(), 1, 8, MSG_SIGNATURE_SIZE)
             .isTrue(
-                basicDataAdapter->getKeyDiversifier().empty()
+                !basicDataAdapter->hasKeyDiversifier()
                     || (basicDataAdapter->getKeyDiversifier().size() >= 1
                         && basicDataAdapter->getKeyDiversifier().size() <= 8),
                 MSG_KEY_DIVERSIFIER_SIZE_IS_IN_RANGE_1_8);
@@ -201,7 +213,7 @@ FreeTransactionManagerAdapter::prepareComputeSignature(
                     traceabilityOffsetInRange,
                     "traceability offset is in range")
                 .isTrue(
-                    traceableDataAdapter->getKeyDiversifier().empty()
+                    !traceableDataAdapter->hasKeyDiversifier()
                         || (traceableDataAdapter->getKeyDiversifier().size()
                                 >= 1
                             && traceableDataAdapter->getKeyDiversifier().size()
@@ -216,9 +228,8 @@ FreeTransactionManagerAdapter::prepareComputeSignature(
 
         } else {
             throw IllegalArgumentException(
-                "The provided data must be an instance of "
-                "'BasicSignatureComputationDataAdapter'"
-                " or 'TraceableSignatureComputationDataAdapter'");
+                "Cannot cast 'data' to BasicSignatureComputationDataAdapter or "
+                "TraceableSignatureComputationDataAdapter");
         }
     }
 
@@ -249,7 +260,7 @@ FreeTransactionManagerAdapter::prepareVerifySignature(
                 8,
                 MSG_SIGNATURE_SIZE)
             .isTrue(
-                basicDataAdapter->getKeyDiversifier().empty()
+                !basicDataAdapter->hasKeyDiversifier()
                     || (basicDataAdapter->getKeyDiversifier().size() >= 1
                         && basicDataAdapter->getKeyDiversifier().size() <= 8),
                 "key diversifier size is in range [1..8]");
@@ -295,7 +306,7 @@ FreeTransactionManagerAdapter::prepareVerifySignature(
                     isTracebilityOffsetInRange,
                     "traceability offset is in range")
                 .isTrue(
-                    traceableDataAdapter->getKeyDiversifier().empty()
+                    !traceableDataAdapter->hasKeyDiversifier()
                         || (traceableDataAdapter->getKeyDiversifier().size()
                                 >= 1
                             && traceableDataAdapter->getKeyDiversifier().size()
@@ -333,10 +344,9 @@ FreeTransactionManagerAdapter::prepareVerifySignature(
                 if (traceableDataAdapter->getSamRevocationService()
                         ->isSamRevoked(samSerialNumber, samCounterValue)) {
                     throw SamRevokedException(
-                        "SAM with serial number ["
-                        + HexUtil::toHex(samSerialNumber)
-                        + "] and counter value ["
-                        + std::to_string(samCounterValue) + "] is revoked");
+                        "SAM is revoked. Serial number: "
+                        + HexUtil::toHex(samSerialNumber) + "h, Counter value: "
+                        + std::to_string(samCounterValue));
                 }
             }
 
@@ -348,8 +358,8 @@ FreeTransactionManagerAdapter::prepareVerifySignature(
 
         } else {
             throw IllegalArgumentException(
-                "The provided data must be an instance of "
-                "'SignatureVerificationDataAdapter'");
+                "Cannot cast 'data' to BasicSignatureVerificationDataAdapter "
+                "or TraceableSignatureVerificationDataAdapter");
         }
     }
 
@@ -514,13 +524,11 @@ FreeTransactionManagerAdapter::exportTargetSamContextForAsyncTransaction()
               ->getKvc();
     if (counterPersonalization != 0) {
         targetSamContextDto->getSystemKeyTypeToCounterNumberMap()
-            [SystemKeyType::PERSONALIZATION]
-            = counterPersonalization;
+            [SystemKeyType::PERSONALIZATION] = counterPersonalization;
     }
     if (counterKeyManagement != 0) {
         targetSamContextDto->getSystemKeyTypeToCounterNumberMap()
-            [SystemKeyType::KEY_MANAGEMENT]
-            = counterKeyManagement;
+            [SystemKeyType::KEY_MANAGEMENT] = counterKeyManagement;
     }
     if (counterReloading != 0) {
         targetSamContextDto
@@ -554,9 +562,8 @@ FreeTransactionManagerAdapter::exportTargetSamContextForAsyncTransaction()
 
     if (counterPersonalization != 0) {
         targetSamContextDto
-            ->getCounterNumberToCounterValueMap()[counterPersonalization]
-            = *(getContext()->getTargetSam()->getCounter(
-                counterPersonalization));
+            ->getCounterNumberToCounterValueMap()[counterPersonalization] = *(
+            getContext()->getTargetSam()->getCounter(counterPersonalization));
     }
     if (counterKeyManagement != 0) {
         targetSamContextDto
@@ -577,7 +584,21 @@ FreeTransactionManagerAdapter::exportTargetSamContextForAsyncTransaction()
 FreeTransactionManager&
 FreeTransactionManagerAdapter::processCommands()
 {
-    processTargetSamCommands(false);
+    try {
+        return processCommands(ChannelControl::KEEP_OPEN);
+    } catch (const ReaderCommunicationException& e) {
+        throw ReaderIOException(e.what(), e);
+    } catch (const CardCommunicationException& e) {
+        throw SamIOException(e.what(), e);
+    } catch (const InvalidCardResponseException& e) {
+        throw UnexpectedCommandStatusException(e.what(), e);
+    }
+}
+
+FreeTransactionManager&
+FreeTransactionManagerAdapter::processCommands(ChannelControl channelControl)
+{
+    processTargetSamCommands(channelControl);
 
     return *this;
 }

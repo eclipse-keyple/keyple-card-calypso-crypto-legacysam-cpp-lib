@@ -64,10 +64,15 @@ CommonTransactionManagerAdapter::getTargetSamCommands() const
 
 void
 CommonTransactionManagerAdapter::processTargetSamCommands(
-    bool closePhysicalChannel)
+    ChannelControl channelControl)
 {
-    CommandExecutor::processCommands(
-        mTargetSamCommands, mTargetSamReader, closePhysicalChannel);
+    try {
+        CommandExecutor::processCommands(
+            mTargetSamCommands, mTargetSamReader, channelControl);
+    } catch (...) {
+        mTargetSamCommands.clear();
+        throw;
+    }
 
     mTargetSamCommands.clear();
 }
@@ -76,15 +81,21 @@ void
 CommonTransactionManagerAdapter::processTargetSamCommands(
     std::vector<std::shared_ptr<Command>> commands)
 {
-    CommandExecutor::processCommands(commands, mTargetSamReader, false);
+    CommandExecutor::processCommands(
+        commands, mTargetSamReader, ChannelControl::KEEP_OPEN);
 }
 
 void
 CommonTransactionManagerAdapter::processTargetSamCommandsAlreadyFinalized(
-    bool closePhysicalChannel)
+    ChannelControl channelControl)
 {
-    CommandExecutor::processCommandsAlreadyFinalized(
-        mTargetSamCommands, mTargetSamReader, closePhysicalChannel);
+    try {
+        CommandExecutor::processCommandsAlreadyFinalized(
+            mTargetSamCommands, mTargetSamReader, channelControl);
+    } catch (...) {
+        mTargetSamCommands.clear();
+        throw;
+    }
 
     mTargetSamCommands.clear();
 }

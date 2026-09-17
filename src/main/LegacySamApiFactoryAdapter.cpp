@@ -15,6 +15,7 @@
 
 #include <memory>
 #include <string>
+#include <typeinfo>
 #include <utility>
 
 #include "keyple/card/calypso/crypto/legacysam/AsyncTransactionCreatorManagerAdapter.hpp"
@@ -38,12 +39,12 @@ namespace legacysam {
 using keyple::core::util::Assert;
 using keyple::core::util::cpp::exception::IllegalArgumentException;
 
-const std::string LegacySamApiFactoryAdapter ::
-    MSG_THE_PROVIDED_SAM_READER_MUST_IMPLEMENT_PROXY_READER_API
-    = "The provided 'samReader' must implement 'ProxyReaderApi'";
-const std::string LegacySamApiFactoryAdapter ::
-    MSG_THE_PROVIDED_SAM_MUST_BE_AN_INSTANCE_OF_LEGACY_SAM_ADAPTER
-    = "The provided 'sam' must be an instance of 'LegacySamAdapter'";
+const std::string
+    LegacySamApiFactoryAdapter::MSG_CANNOT_CAST_SAM_READER_TO_PROXY_READER_API
+    = "Cannot cast 'samReader' to ProxyReaderApi. Actual type: ";
+const std::string
+    LegacySamApiFactoryAdapter::MSG_CANNOT_CAST_SAM_TO_LEGACY_SAM_ADAPTER
+    = "Cannot cast 'sam' to LegacySamAdapter. Actual type: ";
 
 LegacySamApiFactoryAdapter::LegacySamApiFactoryAdapter(
     std::shared_ptr<ContextSettingAdapter> contextSetting)
@@ -63,13 +64,16 @@ LegacySamApiFactoryAdapter::createSymmetricCryptoCardTransactionManagerFactory(
 {
     auto proxyReader = std::dynamic_pointer_cast<ProxyReaderApi>(samReader);
     if (!proxyReader) {
+        const CardReader& samReaderRef = *samReader;
         throw IllegalArgumentException(
-            MSG_THE_PROVIDED_SAM_READER_MUST_IMPLEMENT_PROXY_READER_API);
+            MSG_CANNOT_CAST_SAM_READER_TO_PROXY_READER_API
+            + typeid(samReaderRef).name());
     }
     auto legacySamAdapter = std::dynamic_pointer_cast<LegacySamAdapter>(sam);
     if (!legacySamAdapter) {
+        const LegacySam& samRef = *sam;
         throw IllegalArgumentException(
-            MSG_THE_PROVIDED_SAM_MUST_BE_AN_INSTANCE_OF_LEGACY_SAM_ADAPTER);
+            MSG_CANNOT_CAST_SAM_TO_LEGACY_SAM_ADAPTER + typeid(samRef).name());
     }
 
     return std::make_shared<
@@ -89,13 +93,16 @@ LegacySamApiFactoryAdapter::createFreeTransactionManager(
 {
     auto proxyReader = std::dynamic_pointer_cast<ProxyReaderApi>(samReader);
     if (!proxyReader) {
+        const CardReader& samReaderRef = *samReader;
         throw IllegalArgumentException(
-            MSG_THE_PROVIDED_SAM_READER_MUST_IMPLEMENT_PROXY_READER_API);
+            MSG_CANNOT_CAST_SAM_READER_TO_PROXY_READER_API
+            + typeid(samReaderRef).name());
     }
     auto legacySamAdapter = std::dynamic_pointer_cast<LegacySamAdapter>(sam);
     if (!legacySamAdapter) {
+        const LegacySam& samRef = *sam;
         throw IllegalArgumentException(
-            MSG_THE_PROVIDED_SAM_MUST_BE_AN_INSTANCE_OF_LEGACY_SAM_ADAPTER);
+            MSG_CANNOT_CAST_SAM_TO_LEGACY_SAM_ADAPTER + typeid(samRef).name());
     }
 
     return std::make_shared<FreeTransactionManagerAdapter>(
@@ -110,13 +117,16 @@ LegacySamApiFactoryAdapter::createSecureWriteTransactionManager(
 {
     auto proxyReader = std::dynamic_pointer_cast<ProxyReaderApi>(samReader);
     if (!proxyReader) {
+        const CardReader& samReaderRef = *samReader;
         throw IllegalArgumentException(
-            MSG_THE_PROVIDED_SAM_READER_MUST_IMPLEMENT_PROXY_READER_API);
+            MSG_CANNOT_CAST_SAM_READER_TO_PROXY_READER_API
+            + typeid(samReaderRef).name());
     }
     auto legacySamAdapter = std::dynamic_pointer_cast<LegacySamAdapter>(sam);
     if (!legacySamAdapter) {
+        const LegacySam& samRef = *sam;
         throw IllegalArgumentException(
-            MSG_THE_PROVIDED_SAM_MUST_BE_AN_INSTANCE_OF_LEGACY_SAM_ADAPTER);
+            MSG_CANNOT_CAST_SAM_TO_LEGACY_SAM_ADAPTER + typeid(samRef).name());
     }
 
     Assert::getInstance().notNull(securitySetting, "securitySetting");
@@ -150,13 +160,16 @@ LegacySamApiFactoryAdapter::createAsyncTransactionExecutorManager(
 {
     auto proxyReader = std::dynamic_pointer_cast<ProxyReaderApi>(samReader);
     if (!proxyReader) {
+        const CardReader& samReaderRef = *samReader;
         throw IllegalArgumentException(
-            MSG_THE_PROVIDED_SAM_READER_MUST_IMPLEMENT_PROXY_READER_API);
+            MSG_CANNOT_CAST_SAM_READER_TO_PROXY_READER_API
+            + typeid(samReaderRef).name());
     }
     auto legacySamAdapter = std::dynamic_pointer_cast<LegacySamAdapter>(sam);
     if (!legacySamAdapter) {
+        const LegacySam& samRef = *sam;
         throw IllegalArgumentException(
-            MSG_THE_PROVIDED_SAM_MUST_BE_AN_INSTANCE_OF_LEGACY_SAM_ADAPTER);
+            MSG_CANNOT_CAST_SAM_TO_LEGACY_SAM_ADAPTER + typeid(samRef).name());
     }
 
     return std::make_shared<AsyncTransactionExecutorManagerAdapter>(

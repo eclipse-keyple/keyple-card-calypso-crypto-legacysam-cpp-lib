@@ -109,7 +109,10 @@ CommandCardGenerateAsymmetricKeyPair::parseResponse(
                   .getHeader();
         for (size_t i = 0; i < header.size(); i++) {
             if (dataOut[i] != header[i]) {
-                throw DataAccessException("Inconsistent BER-TLV tag");
+                throw DataAccessException(
+                    "Inconsistent BER-TLV tag. Expected: "
+                    + HexUtil::toHex(header[i])
+                    + "h, Actual: " + HexUtil::toHex(dataOut[i]) + "h");
             }
         }
 

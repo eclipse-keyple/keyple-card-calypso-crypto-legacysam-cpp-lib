@@ -29,7 +29,6 @@
 #include "keyple/card/calypso/crypto/legacysam/UnexpectedResponseLengthException.hpp"
 #include "keyple/card/calypso/crypto/legacysam/UnknownStatusException.hpp"
 #include "keyple/core/util/HexUtil.hpp"
-#include "keyple/core/util/cpp/StringUtils.hpp"
 
 namespace keyple {
 namespace card {
@@ -38,7 +37,6 @@ namespace crypto {
 namespace legacysam {
 
 using keyple::core::util::HexUtil;
-using keyple::core::util::cpp::StringUtils;
 
 using StatusProperties = Command::StatusProperties;
 
@@ -207,7 +205,9 @@ Command::processControlSamCommand()
 {
     try {
         CommandExecutor::processCommands(
-            mControlSamCommands, mContext->getControlSamReader(), false);
+            mControlSamCommands,
+            mContext->getControlSamReader(),
+            ChannelControl::KEEP_OPEN);
 
     } catch (const std::exception&) {
         throw;
@@ -252,10 +252,9 @@ Command::checkStatus()
         if (mLe != 0
             && mLe != static_cast<int>(mApduResponse->getDataOut().size())) {
             throw UnexpectedResponseLengthException(
-                StringUtils::format(
-                    "Incorrect APDU response length (expected: %d, actual: %d)",
-                    mLe,
-                    mApduResponse->getDataOut().size()));
+                "Incorrect APDU response length. Expected: "
+                + std::to_string(mLe) + ", Actual: "
+                + std::to_string(mApduResponse->getDataOut().size()));
         }
 
         /* SW and response length are correct. */
@@ -273,7 +272,7 @@ Command::checkStatus()
         = props != nullptr ? props->getInformation() : "Unknown status";
 
     /* Throw the exception */
-    throw buildCommandException(exceptionClass, message);
+    throwCommandException(exceptionClass, message);
 }
 
 std::shared_ptr<ApduResponseApi>
@@ -288,26 +287,26 @@ Command::getStatusTable() const
     return STATUS_TABLE;
 }
 
-CommandException
-Command::buildCommandException(
+void
+Command::throwCommandException(
     const std::type_info& exceptionClass, const std::string& message)
 {
     if (exceptionClass == typeid(AccessForbiddenException)) {
-        return AccessForbiddenException(message);
+        throw AccessForbiddenException(message);
     } else if (exceptionClass == typeid(CounterOverflowException)) {
-        return CounterOverflowException(message);
+        throw CounterOverflowException(message);
     } else if (exceptionClass == typeid(DataAccessException)) {
-        return DataAccessException(message);
+        throw DataAccessException(message);
     } else if (exceptionClass == typeid(IllegalParameterException)) {
-        return IllegalParameterException(message);
+        throw IllegalParameterException(message);
     } else if (exceptionClass == typeid(IncorrectInputDataException)) {
-        return IncorrectInputDataException(message);
+        throw IncorrectInputDataException(message);
     } else if (exceptionClass == typeid(SecurityDataException)) {
-        return SecurityDataException(message);
+        throw SecurityDataException(message);
     } else if (exceptionClass == typeid(SecurityContextException)) {
-        return SecurityContextException(message);
+        throw SecurityContextException(message);
     } else {
-        return UnknownStatusException(message);
+        throw UnknownStatusException(message);
     }
 }
 

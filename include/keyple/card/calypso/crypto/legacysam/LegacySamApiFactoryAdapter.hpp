@@ -200,10 +200,8 @@ private:
     /**
      *
      */
-    static const std::string
-        MSG_THE_PROVIDED_SAM_READER_MUST_IMPLEMENT_PROXY_READER_API;
-    static const std::string
-        MSG_THE_PROVIDED_SAM_MUST_BE_AN_INSTANCE_OF_LEGACY_SAM_ADAPTER;
+    static const std::string MSG_CANNOT_CAST_SAM_READER_TO_PROXY_READER_API;
+    static const std::string MSG_CANNOT_CAST_SAM_TO_LEGACY_SAM_ADAPTER;
 
     /**
      *

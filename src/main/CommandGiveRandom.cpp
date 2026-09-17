@@ -46,7 +46,8 @@ const std::map<int, const std::shared_ptr<StatusProperties>>
 CommandGiveRandom::CommandGiveRandom(
     std::shared_ptr<DtoAdapters::CommandContextDto> context,
     const std::vector<uint8_t>& random)
-: Command(CommandRef::GIVE_RANDOM, static_cast<int>(random.size()), context)
+/* The SAM answers with a status word only, hence no expected data length. */
+: Command(CommandRef::GIVE_RANDOM, 0, context)
 {
     const uint8_t cla = context->getTargetSam()->getClassByte();
     const uint8_t p1 = 0x00;
@@ -54,7 +55,8 @@ CommandGiveRandom::CommandGiveRandom(
 
     if (random.size() != 8) {
         throw IllegalArgumentException(
-            "Random value should be an 8 bytes long");
+            "Random value is an incorrect length. Expected 8 bytes, got "
+            + std::to_string(random.size()));
     }
     setApduRequest(
         std::make_shared<ApduRequestAdapter>(ApduUtil::build(
