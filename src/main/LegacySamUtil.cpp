@@ -70,7 +70,9 @@ LegacySamUtil::buildPowerOnDataFilter(
         /* match any ATR */
         return ".*";
     default:
-        throw IllegalArgumentException("Unknown SAM subtype");
+        throw IllegalArgumentException(
+            "Unsupported ProductType: "
+            + std::to_string(static_cast<int>(productType)));
     }
 
     return "3B(.{6}|.{10})805A..80" + applicationTypeMask + ".{6}" + snRegex

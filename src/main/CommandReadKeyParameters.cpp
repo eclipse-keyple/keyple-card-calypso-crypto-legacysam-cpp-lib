@@ -18,8 +18,11 @@
 #include <vector>
 
 #include "keyple/card/calypso/crypto/legacysam/CounterOverflowException.hpp"
+#include "keyple/card/calypso/crypto/legacysam/DataAccessException.hpp"
 #include "keyple/card/calypso/crypto/legacysam/IllegalParameterException.hpp"
+#include "keyple/card/calypso/crypto/legacysam/KeyParameterAdapter.hpp"
 #include "keyple/core/util/ApduUtil.hpp"
+#include "keyple/core/util/cpp/Arrays.hpp"
 #include "keyple/core/util/cpp/exception/IllegalStateException.hpp"
 
 namespace keyple {
@@ -29,6 +32,7 @@ namespace crypto {
 namespace legacysam {
 
 using keyple::core::util::ApduUtil;
+using keyple::core::util::cpp::Arrays;
 using keyple::core::util::cpp::exception::IllegalStateException;
 
 const int CommandReadKeyParameters::SW_KEY_NOT_FOUND = 0x6A83;
@@ -65,6 +69,7 @@ CommandReadKeyParameters::CommandReadKeyParameters(
     SystemKeyType systemKeyType)
 : Command(CommandRef::READ_KEY_PARAMETERS, 32, context)
 , mSystemKeyType(systemKeyType)
+, mHasKifKvc(false)
 , mRecordNumber(0)
 {
     if (!context) {
@@ -92,7 +97,7 @@ CommandReadKeyParameters::CommandReadKeyParameters(
         break;
     default:
         throw IllegalStateException(
-            "Unexpected value: "
+            "Unexpected SystemKeyType: "
             + std::to_string(static_cast<int>(systemKeyType)));
     }
 
@@ -113,6 +118,7 @@ CommandReadKeyParameters::CommandReadKeyParameters(
     const std::uint8_t kvc)
 : Command(CommandRef::READ_KEY_PARAMETERS, 32, context)
 , mSystemKeyType(SystemKeyType::UNKNOWN)
+, mHasKifKvc(true)
 , mRecordNumber(0)
 {
     if (!context) {
@@ -139,6 +145,7 @@ CommandReadKeyParameters::CommandReadKeyParameters(
     std::shared_ptr<DtoAdapters::CommandContextDto> context, int recordNumber)
 : Command(CommandRef::READ_KEY_PARAMETERS, 32, context)
 , mSystemKeyType(SystemKeyType::UNKNOWN)
+, mHasKifKvc(false)
 , mRecordNumber(recordNumber)
 {
     if (!context) {
@@ -176,8 +183,26 @@ void
 CommandReadKeyParameters::parseResponse(
     std::shared_ptr<ApduResponseApi> apduResponse)
 {
-    setResponseAndCheckStatus(apduResponse);
-    getContext()->getTargetSam()->setChallenge(apduResponse->getDataOut());
+    try {
+        setResponseAndCheckStatus(apduResponse);
+    } catch (const DataAccessException&) {
+        return;
+    }
+
+    auto keyParameterAdapter = std::make_shared<KeyParameterAdapter>(
+        Arrays::copyOfRange(apduResponse->getApdu(), 8, 21));
+
+    std::shared_ptr<LegacySamAdapter> legacySamAdapter
+        = getContext()->getTargetSam();
+    if (mSystemKeyType != SystemKeyType::UNKNOWN) {
+        legacySamAdapter->setSystemKeyParameter(
+            mSystemKeyType, keyParameterAdapter);
+    } else if (mHasKifKvc) {
+        legacySamAdapter->setWorkKeyParameter(mKifKvc, keyParameterAdapter);
+    } else {
+        legacySamAdapter->setWorkKeyParameter(
+            mRecordNumber, keyParameterAdapter);
+    }
 }
 
 const std::map<int, const std::shared_ptr<StatusProperties>>&

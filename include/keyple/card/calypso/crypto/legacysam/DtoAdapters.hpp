@@ -151,6 +151,13 @@ public:
         const std::vector<uint8_t> getKeyDiversifier() const;
 
         /**
+         * @return True if a key diversifier has been explicitly set (even to
+         * an empty array), false otherwise.
+         * @since 0.1.0
+         */
+        bool hasKeyDiversifier() const;
+
+        /**
          * Sets the computed signature.
          *
          * @param signature The computed signature.
@@ -183,6 +190,11 @@ public:
          *
          */
         std::vector<uint8_t> mKeyDiversifier;
+
+        /**
+         *
+         */
+        bool mHasKeyDiversifier;
 
         /**
          *
@@ -263,6 +275,13 @@ public:
         const std::vector<uint8_t> getKeyDiversifier() const;
 
         /**
+         * @return True if a key diversifier has been explicitly set (even to
+         * an empty array), false otherwise.
+         * @since 0.1.0
+         */
+        bool hasKeyDiversifier() const;
+
+        /**
          * Sets the signature verification status.
          *
          * @param isSignatureValid True if the signature is valid.
@@ -301,6 +320,11 @@ public:
          *
          */
         std::vector<uint8_t> mKeyDiversifier;
+
+        /**
+         *
+         */
+        bool mHasKeyDiversifier;
 
         /**
          *

@@ -62,7 +62,7 @@ CommandSelectDiversifier::CommandSelectDiversifier(
     /* Format the diversifier on 4 or 8 bytes if needed. */
     if (diversifier.size() != 4 && diversifier.size() != 8) {
         const int newLength = diversifier.size() < 4 ? 4 : 8;
-        std::vector<uint8_t> tmp;
+        std::vector<uint8_t> tmp(newLength);
         System::arraycopy(
             diversifier,
             0,

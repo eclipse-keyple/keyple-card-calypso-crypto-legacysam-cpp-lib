@@ -20,16 +20,16 @@
 #include "keyple/card/calypso/crypto/legacysam/Command.hpp"
 #include "keyple/card/calypso/crypto/legacysam/CommandException.hpp"
 #include "keyple/card/calypso/crypto/legacysam/CommandRef.hpp"
+#include "keyple/core/util/HexUtil.hpp"
 #include "keypop/calypso/card/transaction/InconsistentDataException.hpp"
-#include "keypop/calypso/card/transaction/UnexpectedCommandStatusException.hpp"
 #include "keypop/card/CardBrokenCommunicationException.hpp"
 #include "keypop/card/CardResponseApi.hpp"
 #include "keypop/card/ChannelControl.hpp"
 #include "keypop/card/ReaderBrokenCommunicationException.hpp"
 #include "keypop/card/UnexpectedStatusWordException.hpp"
 #include "keypop/reader/CardCommunicationException.hpp"
+#include "keypop/reader/InvalidCardResponseException.hpp"
 #include "keypop/reader/ReaderCommunicationException.hpp"
-#include "keypop/reader/selection/InvalidCardResponseException.hpp"
 
 namespace keyple {
 namespace card {
@@ -37,31 +37,28 @@ namespace calypso {
 namespace crypto {
 namespace legacysam {
 
+using keyple::core::util::HexUtil;
 using keypop::calypso::card::transaction::InconsistentDataException;
-using keypop::calypso::card::transaction::UnexpectedCommandStatusException;
 using keypop::card::CardBrokenCommunicationException;
 using keypop::card::CardResponseApi;
-using keypop::card::ChannelControl;
 using keypop::card::ReaderBrokenCommunicationException;
 using keypop::card::UnexpectedStatusWordException;
 using keypop::reader::CardCommunicationException;
+using keypop::reader::InvalidCardResponseException;
 using keypop::reader::ReaderCommunicationException;
-using keypop::reader::selection::InvalidCardResponseException;
 
 const std::string CommandExecutor::MSG_SAM_READER_COMMUNICATION_ERROR
-    = "A communication error with the SAM reader occurred ";
+    = "Failed to communicate with SAM reader";
 const std::string CommandExecutor::MSG_SAM_COMMUNICATION_ERROR
-    = "A communication error with the SAM occurred ";
-const std::string CommandExecutor::MSG_SAM_COMMAND_ERROR
-    = "A SAM command error occurred ";
+    = "Failed to communicate with SAM";
 const std::string CommandExecutor::MSG_WHILE_TRANSMITTING_COMMANDS
-    = "while transmitting commands";
+    = " while transmitting commands.";
 
 void
 CommandExecutor::processCommands(
     const std::vector<std::shared_ptr<Command>>& commands,
     std::shared_ptr<ProxyReaderApi> samReader,
-    bool closePhysicalChannel)
+    ChannelControl channelControl)
 {
     if (commands.empty()) {
         return;
@@ -71,7 +68,8 @@ CommandExecutor::processCommands(
 
     for (const auto& command : commands) {
         if (command->isControlSamRequiredToFinalizeRequest()) {
-            executeCommands(cardRequestCommands, samReader, false);
+            executeCommands(
+                cardRequestCommands, samReader, ChannelControl::KEEP_OPEN);
             cardRequestCommands.clear();
         }
 
@@ -79,27 +77,27 @@ CommandExecutor::processCommands(
         cardRequestCommands.push_back(command);
     }
 
-    executeCommands(cardRequestCommands, samReader, closePhysicalChannel);
+    executeCommands(cardRequestCommands, samReader, channelControl);
 }
 
 void
 CommandExecutor::processCommandsAlreadyFinalized(
     const std::vector<std::shared_ptr<Command>>& commands,
     std::shared_ptr<ProxyReaderApi> samReader,
-    bool closePhysicalChannel)
+    ChannelControl channelControl)
 {
     if (commands.empty()) {
         return;
     }
 
-    executeCommands(commands, samReader, closePhysicalChannel);
+    executeCommands(commands, samReader, channelControl);
 }
 
 void
 CommandExecutor::executeCommands(
     const std::vector<std::shared_ptr<Command>>& commands,
     std::shared_ptr<ProxyReaderApi> samReader,
-    bool closePhysicalChannel)
+    ChannelControl channelControl)
 {
     /* Retrieve the list of C-APDUs */
     std::vector<std::shared_ptr<ApduRequestSpi>> apduRequests
@@ -113,8 +111,9 @@ CommandExecutor::executeCommands(
     std::shared_ptr<CardResponseApi> cardResponse = transmitCardRequest(
         cardRequest,
         samReader,
-        closePhysicalChannel ? ChannelControl::CLOSE_AFTER
-                             : ChannelControl::KEEP_OPEN);
+        channelControl == ChannelControl::CLOSE_AFTER
+            ? keypop::card::ChannelControl::CLOSE_AFTER
+            : keypop::card::ChannelControl::KEEP_OPEN);
 
     /* Retrieve the list of R-APDUs */
     std::vector<std::shared_ptr<ApduResponseApi>> apduResponses
@@ -127,9 +126,9 @@ CommandExecutor::executeCommands(
      */
     if (apduResponses.size() > commands.size()) {
         throw InconsistentDataException(
-            "The number of commands/responses does not match: nb commands = "
-            + std::to_string(commands.size())
-            + ", nb responses = " + std::to_string(apduResponses.size()));
+            "The number of commands/responses does not match. Expected "
+            + std::to_string(commands.size()) + " responses, got "
+            + std::to_string(apduResponses.size()));
     }
 
     /*
@@ -144,10 +143,15 @@ CommandExecutor::executeCommands(
             command->parseResponse(apduResponses[i]);
 
         } catch (const CommandException& e) {
-            throw UnexpectedCommandStatusException(
-                MSG_SAM_COMMAND_ERROR
-                    + "while processing responses to SAM commands: "
-                    + command->getCommandRef().getName(),
+            const std::string sw
+                = command->getApduResponse() != nullptr
+                      ? HexUtil::toHex(
+                            static_cast<std::uint16_t>(
+                                command->getApduResponse()->getStatusWord()))
+                      : "null";
+            throw InvalidCardResponseException(
+                "Failed to process SAM response. Command: "
+                    + command->getCommandRef().getName() + ", SW: " + sw,
                 e);
         }
     }
@@ -158,9 +162,9 @@ CommandExecutor::executeCommands(
      */
     if (apduResponses.size() < commands.size()) {
         throw InconsistentDataException(
-            "The number of commands/responses does not match: nb commands = "
-            + std::to_string(commands.size())
-            + ", nb responses = " + std::to_string(apduResponses.size()));
+            "The number of commands/responses does not match. Expected "
+            + std::to_string(commands.size()) + " responses, got "
+            + std::to_string(apduResponses.size()));
     }
 }
 
@@ -183,7 +187,7 @@ std::shared_ptr<CardResponseApi>
 CommandExecutor::transmitCardRequest(
     std::shared_ptr<CardRequestSpi> cardRequest,
     std::shared_ptr<ProxyReaderApi> samReader,
-    ChannelControl channelControl)
+    keypop::card::ChannelControl channelControl)
 {
     std::shared_ptr<CardResponseApi> cardResponse;
 

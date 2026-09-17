@@ -14,6 +14,8 @@
 #include "keyple/card/calypso/crypto/legacysam/SecuritySettingAdapter.hpp"
 
 #include <memory>
+#include <string>
+#include <typeinfo>
 
 #include "keyple/core/util/KeypleAssert.hpp"
 #include "keyple/core/util/cpp/exception/IllegalArgumentException.hpp"
@@ -41,16 +43,19 @@ SecuritySettingAdapter::setControlSamResource(
 
     auto proxyReader = std::dynamic_pointer_cast<ProxyReaderApi>(samReader);
     if (!proxyReader) {
+        const CardReader& samReaderRef = *samReader;
         throw IllegalArgumentException(
-            "The provided 'samReader' must implement 'ProxyReaderApi'");
+            "Cannot cast 'samReader' to ProxyReaderApi. Actual type: "
+            + std::string(typeid(samReaderRef).name()));
     }
 
     auto legacySamAdapter
         = std::dynamic_pointer_cast<LegacySamAdapter>(controlSam);
     if (!legacySamAdapter) {
+        const LegacySam& controlSamRef = *controlSam;
         throw IllegalArgumentException(
-            "The provided 'controlSam' must be an instance of "
-            "'LegacySamAdapter'");
+            "Cannot cast 'controlSam' to LegacySamAdapter. Actual type: "
+            + std::string(typeid(controlSamRef).name()));
     }
 
     mControlSamReader = proxyReader;

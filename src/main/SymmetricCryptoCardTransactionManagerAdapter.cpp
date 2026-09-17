@@ -15,6 +15,7 @@
 
 #include <memory>
 #include <string>
+#include <typeinfo>
 #include <utility>
 #include <vector>
 
@@ -48,8 +49,8 @@
 #include "keypop/calypso/crypto/legacysam/transaction/InvalidSignatureException.hpp"
 #include "keypop/calypso/crypto/legacysam/transaction/SamRevokedException.hpp"
 #include "keypop/calypso/crypto/legacysam/transaction/SignatureComputationDataBase.hpp"
-#include "keypop/calypso/crypto/legacysam/transaction/UnexpectedCommandStatusException.hpp"
 #include "keypop/calypso/crypto/symmetric/SymmetricCryptoException.hpp"
+#include "keypop/reader/InvalidCardResponseException.hpp"
 
 namespace keyple {
 namespace card {
@@ -70,19 +71,18 @@ using keypop::calypso::crypto::legacysam::transaction::
 using keypop::calypso::crypto::legacysam::transaction::SamRevokedException;
 using keypop::calypso::crypto::legacysam::transaction::
     SignatureComputationDataBase;
-using keypop::calypso::crypto::legacysam::transaction::
-    UnexpectedCommandStatusException;
 using keypop::calypso::crypto::symmetric::SymmetricCryptoException;
+using keypop::reader::InvalidCardResponseException;
 
 using InvalidCardMacException
     = SymmetricCryptoCardTransactionManagerAdapter::InvalidCardMacException;
 
 const std::string
     SymmetricCryptoCardTransactionManagerAdapter::MSG_SAM_INCONSISTENT_DATA
-    = "The number of SAM commands/responses does not match: nb commands = ";
+    = "The number of commands/responses does not match. Expected ";
 const std::string
     SymmetricCryptoCardTransactionManagerAdapter::MSG_SAM_NB_RESPONSES
-    = ", nb responses = ";
+    = " responses, got ";
 const std::string
     SymmetricCryptoCardTransactionManagerAdapter::MSG_INPUT_OUTPUT_DATA
     = "input/output data";
@@ -394,10 +394,11 @@ SymmetricCryptoCardTransactionManagerAdapter::prepareComputeSignature(
                     getContext(), traceableDataAdapter));
 
         } else {
+            const SignatureComputationDataBase& dataRef = *data;
             throw std::invalid_argument(
-                "The provided data must be an instance of "
-                "'BasicSignatureComputationDataAdapter'"
-                " or 'TraceableSignatureComputationDataAdapter'");
+                "Cannot cast 'data' to BasicSignatureComputationDataAdapter "
+                "or TraceableSignatureComputationDataAdapter. Actual type: "
+                + std::string(typeid(dataRef).name()));
         }
     }
 
@@ -513,10 +514,9 @@ SymmetricCryptoCardTransactionManagerAdapter::prepareVerifySignature(
                 if (traceableDataAdapter->getSamRevocationService()
                         ->isSamRevoked(samSerialNumber, samCounterValue)) {
                     throw SamRevokedException(
-                        "SAM with serial number ["
-                        + HexUtil::toHex(samSerialNumber)
-                        + "] and counter value ["
-                        + std::to_string(samCounterValue) + "] is revoked");
+                        "SAM is revoked. Serial number: "
+                        + HexUtil::toHex(samSerialNumber) + "h, Counter value: "
+                        + std::to_string(samCounterValue));
                 }
             }
 
@@ -527,9 +527,11 @@ SymmetricCryptoCardTransactionManagerAdapter::prepareVerifySignature(
                     getContext(), traceableDataAdapter));
 
         } else {
+            const SignatureVerificationDataBase& dataRef = *data;
             throw std::invalid_argument(
-                "The provided data must be an instance of "
-                "'SignatureVerificationDataAdapter'");
+                "Cannot cast 'data' to BasicSignatureVerificationDataAdapter "
+                "or TraceableSignatureVerificationDataAdapter. Actual type: "
+                + std::string(typeid(dataRef).name()));
         }
     }
     return *this;
@@ -589,15 +591,13 @@ SymmetricCryptoCardTransactionManagerAdapter::processCommands()
          */
         if (apduResponses.size() > apduRequests.size()) {
             throw SymmetricCryptoException(
-                "The number of SAM commands/responses does not match: nb "
-                "commands = "
-                    + std::to_string(apduRequests.size()) + ", nb responses = "
+                MSG_SAM_INCONSISTENT_DATA + std::to_string(apduRequests.size())
+                    + MSG_SAM_NB_RESPONSES
                     + std::to_string(apduResponses.size()),
                 InconsistentDataException(
-                    "The number of SAM commands/responses does not match: nb "
-                    "commands = "
-                    + std::to_string(apduRequests.size())
-                    + ", nb responses = " + std::to_string(apduResponses.size())
+                    MSG_SAM_INCONSISTENT_DATA
+                    + std::to_string(apduRequests.size()) + MSG_SAM_NB_RESPONSES
+                    + std::to_string(apduResponses.size())
                     + CardTransactionUtil::getTransactionAuditDataAsString(
                         mTransactionAuditData, mSam)));
         }
@@ -632,13 +632,12 @@ SymmetricCryptoCardTransactionManagerAdapter::processCommands()
                                            : "null";
 
                 throw SymmetricCryptoException(
-                    "A SAM command error occurred while processing responses "
-                    "to SAM commands: "
-                        + commandRef.getName() + " [" + sw + "]",
-                    UnexpectedCommandStatusException(
-                        "A SAM command error occurred while processing "
-                        "responses to SAM commands: "
-                            + commandRef.getName() + " [" + sw + "]"
+                    CardTransactionUtil::MSG_FAILED_TO_PROCESS_SAM_RESPONSE
+                        + " Command: " + commandRef.getName() + ", SW: " + sw,
+                    InvalidCardResponseException(
+                        CardTransactionUtil::MSG_FAILED_TO_PROCESS_SAM_RESPONSE
+                            + " Command: " + commandRef.getName()
+                            + ", SW: " + sw
                             + CardTransactionUtil::
                                 getTransactionAuditDataAsString(
                                     mTransactionAuditData, mSam),
@@ -648,15 +647,13 @@ SymmetricCryptoCardTransactionManagerAdapter::processCommands()
 
         if (apduResponses.size() < apduRequests.size()) {
             throw SymmetricCryptoException(
-                "The number of SAM commands/responses does not match: nb "
-                "commands = "
-                    + std::to_string(apduRequests.size()) + ", nb responses = "
+                MSG_SAM_INCONSISTENT_DATA + std::to_string(apduRequests.size())
+                    + MSG_SAM_NB_RESPONSES
                     + std::to_string(apduResponses.size()),
                 InconsistentDataException(
-                    "The number of SAM commands/responses does not match: nb "
-                    "commands = "
-                    + std::to_string(apduRequests.size())
-                    + ", nb responses = " + std::to_string(apduResponses.size())
+                    MSG_SAM_INCONSISTENT_DATA
+                    + std::to_string(apduRequests.size()) + MSG_SAM_NB_RESPONSES
+                    + std::to_string(apduResponses.size())
                     + CardTransactionUtil::getTransactionAuditDataAsString(
                         mTransactionAuditData, mSam)));
         }
@@ -697,7 +694,8 @@ SymmetricCryptoCardTransactionManagerAdapter::cipherPin(
         if (kif == nullptr || kvc == nullptr) {
             std::string msg = newPin.empty() ? "verification" : "modification";
             throw IllegalStateException(
-                "No KIF or KVC defined for the PIN " + msg + " ciphering key");
+                "KIF and KVC should be set for the PIN " + msg
+                + " ciphering key");
         }
         pinCipheringKif = *kif;
         pinCipheringKvc = *kvc;
@@ -861,7 +859,10 @@ SymmetricCryptoCardTransactionManagerAdapter ::DigestManager::
     }
 
     /* CL-SAM-DUPDATE.1 */
-    if (mParent->mSam->getProductType() == LegacySam::ProductType::SAM_C1) {
+    /* CL-SAM-DMULTI.2 */
+    if (mParent->mSam->getProductType() == LegacySam::ProductType::SAM_C1
+        || mParent->mSam->getProductType()
+               == LegacySam::ProductType::SAM_S1E1) {
         /* Digest Update Multiple */
         std::vector<std::uint8_t> buffer(255);
         int i = 0;

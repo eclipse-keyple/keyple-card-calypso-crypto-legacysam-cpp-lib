@@ -72,7 +72,9 @@ CommandDigestInit::CommandDigestInit(
 : Command(CommandRef::DIGEST_INIT, 0, context)
 {
     if (workKif == 0x00 || workKvc == 0x00) {
-        throw IllegalArgumentException("Bad kif or kvc!");
+        throw IllegalArgumentException(
+            "KIF or KVC is not set. KIF: " + std::to_string(workKif)
+            + ", KVC: " + std::to_string(workKvc) + "]");
     }
 
     const std::uint8_t cla = context->getTargetSam()->getClassByte();

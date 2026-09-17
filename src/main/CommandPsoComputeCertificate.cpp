@@ -26,6 +26,7 @@
 #include "keyple/card/calypso/crypto/legacysam/IncorrectInputDataException.hpp"
 #include "keyple/card/calypso/crypto/legacysam/LegacySamConstants.hpp"
 #include "keyple/core/util/ApduUtil.hpp"
+#include "keyple/core/util/HexUtil.hpp"
 #include "keyple/core/util/cpp/Arrays.hpp"
 
 namespace keyple {
@@ -35,6 +36,7 @@ namespace crypto {
 namespace legacysam {
 
 using keyple::core::util::ApduUtil;
+using keyple::core::util::HexUtil;
 using keyple::core::util::cpp::Arrays;
 
 const std::map<int, const std::shared_ptr<StatusProperties>>
@@ -190,7 +192,10 @@ CommandPsoComputeCertificate::parseResponse(
                   .getHeader();
         for (int i = 0; i < static_cast<int>(header.size()); i++) {
             if (dataOut[i] != header[i]) {
-                throw DataAccessException("Inconsistent BER-TLV tag");
+                throw DataAccessException(
+                    "Inconsistent BER-TLV tag. Expected: "
+                    + HexUtil::toHex(header[i])
+                    + "h, Actual: " + HexUtil::toHex(dataOut[i]) + "h");
             }
         }
 

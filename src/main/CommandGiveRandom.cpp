@@ -54,7 +54,8 @@ CommandGiveRandom::CommandGiveRandom(
 
     if (random.size() != 8) {
         throw IllegalArgumentException(
-            "Random value should be an 8 bytes long");
+            "Random value is an incorrect length. Expected 8 bytes, got "
+            + std::to_string(random.size()));
     }
     setApduRequest(
         std::make_shared<ApduRequestAdapter>(ApduUtil::build(

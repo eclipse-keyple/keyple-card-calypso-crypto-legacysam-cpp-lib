@@ -72,7 +72,9 @@ CommandDigestUpdate::CommandDigestUpdate(
     const std::uint8_t p2 = encryptedSession ? 0x80 : 0x00;
 
     if (digestData.size() > 255) {
-        throw IllegalArgumentException("Digest data null or too long!");
+        throw IllegalArgumentException(
+            "Digest data is too long. Expected 0-255 bytes, got "
+            + std::to_string(digestData.size()));
     }
 
     setApduRequest(

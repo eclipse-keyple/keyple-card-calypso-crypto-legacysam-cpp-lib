@@ -24,8 +24,8 @@
 #include "keyple/card/calypso/crypto/legacysam/SymmetricCryptoCardTransactionManagerAdapter.hpp"
 #include "keyple/core/util/HexUtil.hpp"
 #include "keyple/core/util/cpp/exception/IllegalStateException.hpp"
-#include "keypop/calypso/card/transaction/UnexpectedCommandStatusException.hpp"
 #include "keypop/calypso/crypto/symmetric/SymmetricCryptoException.hpp"
+#include "keypop/reader/InvalidCardResponseException.hpp"
 
 namespace keyple {
 namespace card {
@@ -35,8 +35,8 @@ namespace legacysam {
 
 using keyple::core::util::HexUtil;
 using keyple::core::util::cpp::exception::IllegalStateException;
-using keypop::calypso::card::transaction::UnexpectedCommandStatusException;
 using keypop::calypso::crypto::symmetric::SymmetricCryptoException;
+using keypop::reader::InvalidCardResponseException;
 
 SymmetricCryptoCardTransactionManagerFactoryAdapter::
     SymmetricCryptoCardTransactionManagerFactoryAdapter(
@@ -135,20 +135,18 @@ SymmetricCryptoCardTransactionManagerFactoryAdapter::processCommand(
                   : "null";
 
         const std::string errorMessage
-            = CardTransactionUtil::MSG_SAM_COMMAND_ERROR
-              + "while processing response to SAM command: "
-              + commandRef.getName() + "[" + sw + "]";
+            = CardTransactionUtil::MSG_FAILED_TO_PROCESS_SAM_RESPONSE
+              + " Command: " + commandRef.getName() + ", SW: " + sw;
 
         const std::string detailedErrorMessage
-            = CardTransactionUtil::MSG_SAM_COMMAND_ERROR
-              + "while processing response to SAM command: "
-              + commandRef.getName() + "[" + sw + "]"
+            = CardTransactionUtil::MSG_FAILED_TO_PROCESS_SAM_RESPONSE
+              + " Command: " + commandRef.getName() + ", SW: " + sw
               + CardTransactionUtil::getTransactionAuditDataAsString(
                   transactionAuditData, mSam);
 
         throw SymmetricCryptoException(
             errorMessage,
-            UnexpectedCommandStatusException(detailedErrorMessage, e));
+            InvalidCardResponseException(detailedErrorMessage, e));
     }
 }
 

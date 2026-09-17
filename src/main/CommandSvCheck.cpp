@@ -86,7 +86,9 @@ CommandSvCheck::CommandSvCheck(
 : Command(CommandRef::SV_CHECK, 0, context)
 {
     if (svCardSignature.size() != 3 && svCardSignature.size() != 6) {
-        throw IllegalArgumentException("Invalid svCardSignature");
+        throw IllegalArgumentException(
+            "Invalid SV card signature. Expected 3 or 6 bytes, got "
+            + std::to_string(svCardSignature.size()));
     }
 
     const std::uint8_t cla = context->getTargetSam()->getClassByte();

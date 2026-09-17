@@ -24,6 +24,12 @@
 #include "keyple/card/calypso/crypto/legacysam/LegacySamAdapter.hpp"
 #include "keyple/card/calypso/crypto/legacysam/LegacySamConstants.hpp"
 #include "keyple/core/util/KeypleAssert.hpp"
+#include "keypop/calypso/crypto/legacysam/transaction/ReaderIOException.hpp"
+#include "keypop/calypso/crypto/legacysam/transaction/SamIOException.hpp"
+#include "keypop/calypso/crypto/legacysam/transaction/UnexpectedCommandStatusException.hpp"
+#include "keypop/reader/CardCommunicationException.hpp"
+#include "keypop/reader/InvalidCardResponseException.hpp"
+#include "keypop/reader/ReaderCommunicationException.hpp"
 
 namespace keyple {
 namespace card {
@@ -32,6 +38,13 @@ namespace crypto {
 namespace legacysam {
 
 using keyple::core::util::Assert;
+using keypop::calypso::crypto::legacysam::transaction::ReaderIOException;
+using keypop::calypso::crypto::legacysam::transaction::SamIOException;
+using keypop::calypso::crypto::legacysam::transaction::
+    UnexpectedCommandStatusException;
+using keypop::reader::CardCommunicationException;
+using keypop::reader::InvalidCardResponseException;
+using keypop::reader::ReaderCommunicationException;
 
 SecureWriteTransactionManagerAdapter::SecureWriteTransactionManagerAdapter(
     std::shared_ptr<ProxyReaderApi> targetSamReader,
@@ -332,7 +345,22 @@ SecureWriteTransactionManagerAdapter::prepareWriteCounterConfiguration(
 SecureWriteTransactionManager&
 SecureWriteTransactionManagerAdapter::processCommands()
 {
-    processTargetSamCommands(false);
+    try {
+        return processCommands(ChannelControl::KEEP_OPEN);
+    } catch (const ReaderCommunicationException& e) {
+        throw ReaderIOException(e.what(), e);
+    } catch (const CardCommunicationException& e) {
+        throw SamIOException(e.what(), e);
+    } catch (const InvalidCardResponseException& e) {
+        throw UnexpectedCommandStatusException(e.what(), e);
+    }
+}
+
+SecureWriteTransactionManager&
+SecureWriteTransactionManagerAdapter::processCommands(
+    ChannelControl channelControl)
+{
+    processTargetSamCommands(channelControl);
     return *this;
 }
 

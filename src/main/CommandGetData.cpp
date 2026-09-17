@@ -92,7 +92,10 @@ CommandGetData::parseResponse(std::shared_ptr<ApduResponseApi> apduResponse)
 
     for (int i = 0; i < static_cast<int>(header.size()); i++) {
         if (dataOut[i] != header[i]) {
-            throw new DataAccessException("Inconsistent BER-TLV tag");
+            throw DataAccessException(
+                "Inconsistent BER-TLV tag. Expected: "
+                + std::to_string(header[i])
+                + "h, Actual: " + std::to_string(dataOut[i]) + "h");
         }
     }
 

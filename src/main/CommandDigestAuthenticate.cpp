@@ -59,7 +59,7 @@ CommandDigestAuthenticate::CommandDigestAuthenticate(
     if (signature.size() != 4 && signature.size() != 8
         && signature.size() != 16) {
         throw IllegalArgumentException(
-            "Signature is not the right length : length is "
+            "Signature is not the right length. Expected: 4|8|16, Actual: "
             + std::to_string(signature.size()));
     }
 

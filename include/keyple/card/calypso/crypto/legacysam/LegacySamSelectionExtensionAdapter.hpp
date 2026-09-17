@@ -236,11 +236,6 @@ private:
     /**
      *
      */
-    static const std::string MSG_SAM_COMMAND_ERROR;
-
-    /**
-     *
-     */
     static const std::unique_ptr<Logger> mLogger;
 
     /**

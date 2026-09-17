@@ -129,6 +129,11 @@ private:
     /**
      *
      */
+    bool mHasKifKvc;
+
+    /**
+     *
+     */
     const int mRecordNumber;
 };
 

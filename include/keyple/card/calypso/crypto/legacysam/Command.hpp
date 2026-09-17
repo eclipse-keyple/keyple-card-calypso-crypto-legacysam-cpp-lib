@@ -26,6 +26,7 @@
 #include "keyple/card/calypso/crypto/legacysam/KeypleCardCalypsoCryptoLegacySamExport.hpp"
 #include "keyple/card/generic/ApduRequestAdapter.hpp"
 #include "keypop/card/ApduResponseApi.hpp"
+#include "keypop/reader/ChannelControl.hpp"
 
 namespace keyple {
 namespace card {
@@ -35,6 +36,7 @@ namespace legacysam {
 
 using keyple::card::generic::ApduRequestAdapter;
 using keypop::card::ApduResponseApi;
+using keypop::reader::ChannelControl;
 
 using CommandContextDto = DtoAdapters::CommandContextDto;
 
@@ -163,14 +165,6 @@ public:
     virtual CommandRef getCommandRef() const;
 
     /**
-     * Gets the name of this APDU command.
-     *
-     * @return A not empty string.
-     * @since 0.1.0
-     */
-    const std::string& getName() const;
-
-    /**
      * Sets the command ApduRequestAdapter.
      *
      * @param apduRequest The APDU request.
@@ -259,14 +253,15 @@ public:
     getStatusTable() const;
 
     /**
-     * Builds a specific APDU command exception.
+     * Throws a specific APDU command exception matching the given exception
+     * class, preserving its exact dynamic type (as opposed to returning it by
+     * value, which would slice it down to CommandException).
      *
      * @param exceptionClass the exception class.
      * @param message The message.
-     * @return A not null reference.
      * @since 0.1.0
      */
-    CommandException buildCommandException(
+    [[noreturn]] void buildCommandException(
         const std::type_info& exceptionClass, const std::string& message);
 
 protected:

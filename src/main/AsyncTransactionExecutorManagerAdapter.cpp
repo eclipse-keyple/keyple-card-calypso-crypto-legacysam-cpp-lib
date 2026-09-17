@@ -17,11 +17,26 @@
 #include <string>
 #include <vector>
 
+#include "keypop/calypso/crypto/legacysam/transaction/ReaderIOException.hpp"
+#include "keypop/calypso/crypto/legacysam/transaction/SamIOException.hpp"
+#include "keypop/calypso/crypto/legacysam/transaction/UnexpectedCommandStatusException.hpp"
+#include "keypop/reader/CardCommunicationException.hpp"
+#include "keypop/reader/InvalidCardResponseException.hpp"
+#include "keypop/reader/ReaderCommunicationException.hpp"
+
 namespace keyple {
 namespace card {
 namespace calypso {
 namespace crypto {
 namespace legacysam {
+
+using keypop::calypso::crypto::legacysam::transaction::ReaderIOException;
+using keypop::calypso::crypto::legacysam::transaction::SamIOException;
+using keypop::calypso::crypto::legacysam::transaction::
+    UnexpectedCommandStatusException;
+using keypop::reader::CardCommunicationException;
+using keypop::reader::InvalidCardResponseException;
+using keypop::reader::ReaderCommunicationException;
 
 AsyncTransactionExecutorManagerAdapter::AsyncTransactionExecutorManagerAdapter(
     std::shared_ptr<ProxyReaderApi> targetSamReader,
@@ -50,7 +65,8 @@ AsyncTransactionExecutorManagerAdapter::AsyncTransactionExecutorManagerAdapter(
 
     //     } catch (const ClassNotFoundException& e) {
     //         throw IllegalStateException(
-    //             "Invalid JSON commands object",
+    //             "Class '" + commandsTypes[i] + "' not found. Unable to "
+    //             "parse JSON object: " + samCommandsJson,
     //             std::make_shared<ClassNotFoundException>(e));
     //     }
     // }
@@ -59,7 +75,22 @@ AsyncTransactionExecutorManagerAdapter::AsyncTransactionExecutorManagerAdapter(
 AsyncTransactionExecutorManager&
 AsyncTransactionExecutorManagerAdapter::processCommands()
 {
-    processTargetSamCommandsAlreadyFinalized(false);
+    try {
+        return processCommands(ChannelControl::KEEP_OPEN);
+    } catch (const ReaderCommunicationException& e) {
+        throw ReaderIOException(e.what(), e);
+    } catch (const CardCommunicationException& e) {
+        throw SamIOException(e.what(), e);
+    } catch (const InvalidCardResponseException& e) {
+        throw UnexpectedCommandStatusException(e.what(), e);
+    }
+}
+
+AsyncTransactionExecutorManager&
+AsyncTransactionExecutorManagerAdapter::processCommands(
+    ChannelControl channelControl)
+{
+    processTargetSamCommandsAlreadyFinalized(channelControl);
 
     return *this;
 }
