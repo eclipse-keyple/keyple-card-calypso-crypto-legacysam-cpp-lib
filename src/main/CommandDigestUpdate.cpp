@@ -65,7 +65,7 @@ CommandDigestUpdate::CommandDigestUpdate(
     std::shared_ptr<CommandContextDto> context,
     bool encryptedSession,
     const std::vector<uint8_t>& digestData)
-: Command(CommandRef::DIGEST_UPDATE, 8, context)
+: Command(CommandRef::DIGEST_UPDATE, 0, context)
 {
     const std::uint8_t cla = context->getTargetSam()->getClassByte();
     const std::uint8_t p1 = 0x00;
